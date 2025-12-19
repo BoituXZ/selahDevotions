@@ -49,14 +49,14 @@ export default function Layout() {
 
             {/* --- MOBILE BOTTOM NAV --- */}
             {/* --- MOBILE BOTTOM NAV --- */}
-            <nav className="md:hidden fixed bottom-0 w-full bg-white border-t border-stone-200 flex justify-around p-4 pb-6 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <nav className="md:hidden fixed bottom-0 w-90 bg-white/50 border border-white/50  m-2 p-2 rounded-4xl flex justify-around z-50  shadow-2xl shadow-black/40">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) => `
               flex flex-col items-center gap-1 transition-colors
-              ${isActive ? "text-stone-900" : "text-stone-400"}
+              ${isActive ? "text-stone-900" : "text-stone-500"}
             `}
                     >
                         {/* Use a function here to access 'isActive' for the Icon properties
@@ -64,7 +64,7 @@ export default function Layout() {
                         {({ isActive }) => (
                             <>
                                 <item.icon
-                                    size={24}
+                                    size={22}
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
                                 <span className="text-[10px] font-medium">
