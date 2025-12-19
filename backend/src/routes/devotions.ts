@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import sanitizeHtml from "sanitize-html";
+import * as sanitizeHtml from "sanitize-html";
 import { supabase } from "../lib/supabase";
 import type { Variables } from "../index";
 
