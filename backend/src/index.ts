@@ -8,7 +8,6 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
 import { authMiddleware } from "./middleware/auth";
-import { rateLimitMiddleware } from "./middleware/rate-limit";
 import { logger } from "./lib/logger";
 import devotions from "./routes/devotions";
 import streaks from "./routes/streaks";
@@ -90,9 +89,10 @@ app.use(
 );
 
 // ============================================
-// 3. Rate Limiting (BEFORE Auth to prevent abuse)
+// 3. Rate Limiting (Applied per-route, see chat route)
 // ============================================
-app.use("/api/*", rateLimitMiddleware());
+// NOTE: Rate limiting is applied ONLY to /api/chat to prevent AI abuse
+// Other routes (devotions, streaks) are not rate limited
 
 // ============================================
 // 4. Public Routes

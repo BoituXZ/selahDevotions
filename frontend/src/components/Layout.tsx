@@ -3,7 +3,7 @@ import { LayoutDashboard, BookHeart, MessageCircle, User } from "lucide-react";
 
 export default function Layout() {
     const navItems = [
-        { name: "Dashboard", path: "/", icon: LayoutDashboard },
+        { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
         { name: "Devotions", path: "/devotions", icon: BookHeart },
         { name: "Chat", path: "/chat", icon: MessageCircle },
         { name: "Profile", path: "/profile", icon: User },

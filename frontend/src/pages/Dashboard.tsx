@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../api";
+import WelcomeModal from "../components/WelcomeModal";
 
 interface StreakData {
     current_streak: number;
@@ -8,16 +9,35 @@ interface StreakData {
 
 export default function Dashboard() {
     const [streak, setStreak] = useState<StreakData | null>(null);
+    const [showWelcome, setShowWelcome] = useState(false);
 
+    // Check localStorage on mount for welcome modal
+    useEffect(() => {
+        const hasSeenWelcome = localStorage.getItem("hasSeenWelcome");
+        if (!hasSeenWelcome) {
+            // Delay modal slightly to avoid jarring appearance
+            setTimeout(() => setShowWelcome(true), 300);
+        }
+    }, []);
+
+    // Fetch streak data
     useEffect(() => {
         api.get<StreakData>("/api/streaks")
             .then(setStreak)
             .catch((err) => console.error("Streak fetch failed:", err));
     }, []);
 
+    const handleWelcomeClose = () => {
+        localStorage.setItem("hasSeenWelcome", "true");
+        setShowWelcome(false);
+    };
+
     return (
-        <div className="min-h-screen bg-stone-50">
-            <div className="max-w-2xl mx-auto p-8">
+        <>
+            <WelcomeModal isOpen={showWelcome} onClose={handleWelcomeClose} />
+
+            <div className="min-h-screen bg-stone-50">
+                <div className="max-w-2xl mx-auto p-8">
                 <header className="mb-12 flex justify-between items-end border-b border-stone-200 pb-4">
                     <div>
                         <h1 className="text-4xl font-serif text-stone-800">
@@ -45,7 +65,8 @@ export default function Dashboard() {
                         </button>
                     </div>
                 </main>
+                </div>
             </div>
-        </div>
+        </>
     );
 }

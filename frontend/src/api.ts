@@ -1,6 +1,10 @@
 import { supabase } from "./auth/supabase";
+import { toast } from "sonner";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+// Debouncing flag for 429 errors to prevent spam
+let rateToastShown = false;
 
 // A generic wrapper for fetch
 async function request<T>(
@@ -32,8 +36,29 @@ async function request<T>(
 
     // 4. Handle errors
     if (!response.ok) {
+        // Special handling for 429 rate limit errors
+        if (response.status === 429) {
+            if (!rateToastShown) {
+                toast.error(
+                    "We have run out of fish and bread. Please return later.",
+                    {
+                        duration: 6000,
+                    }
+                );
+                rateToastShown = true;
+                // Reset flag after 10 seconds
+                setTimeout(() => {
+                    rateToastShown = false;
+                }, 10000);
+            }
+            throw new Error("Rate limit exceeded");
+        }
+
+        // Handle other errors
         const error = await response.json().catch(() => ({}));
-        throw new Error(error.error || "Something went wrong");
+        const message = error.error || "Something went wrong";
+        toast.error(message);
+        throw new Error(message);
     }
 
     return response.json();

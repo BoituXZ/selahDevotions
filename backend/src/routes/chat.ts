@@ -3,6 +3,7 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { aiService, AIQuotaExceededError } from "../services/ai";
 import { logger } from "../lib/logger";
+import { rateLimitMiddleware } from "../middleware/rate-limit";
 import type { Variables } from "../index";
 
 const chat = new Hono<{ Variables: Variables }>();
@@ -10,6 +11,9 @@ const chat = new Hono<{ Variables: Variables }>();
 const chatSchema = z.object({
     message: z.string().min(1).max(1000),
 });
+
+// Apply rate limiting ONLY to chat endpoint
+chat.use("/", rateLimitMiddleware());
 
 chat.post("/", zValidator("json", chatSchema), async (c) => {
     const body = c.req.valid("json");

@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, User, Bot } from "lucide-react";
+import { Send, Sparkles, Bot } from "lucide-react";
 import { api } from "../api";
+import MessageBubble from "../components/MessageBubble";
 
 interface Message {
     id: string;
     role: "user" | "assistant";
     text: string;
+    isNew?: boolean;
 }
 
 export default function Chat() {
@@ -47,16 +49,31 @@ export default function Chat() {
                 message: userText,
             });
 
-            // 3. Add AI Response
+            // 3. Add AI Response with typing effect
             const aiMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
                 text: data.reply,
+                isNew: true,
             };
             setMessages((prev) => [...prev, aiMsg]);
+
+            // Clear isNew flag after typing animation completes
+            setTimeout(() => {
+                setMessages((prev) =>
+                    prev.map((msg) =>
+                        msg.id === aiMsg.id ? { ...msg, isNew: false } : msg
+                    )
+                );
+            }, data.reply.length * 30 + 100);
         } catch (err) {
-            console.error(err);
-            // Error handling UI could go here
+            // Toast already shown by api.ts, add friendly error message to chat
+            const errorMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                text: "I apologize, but I'm unable to respond right now. Please try again in a moment.",
+            };
+            setMessages((prev) => [...prev, errorMsg]);
         } finally {
             setLoading(false);
         }
@@ -82,40 +99,11 @@ export default function Chat() {
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-stone-50">
                 {messages.map((msg) => (
-                    <div
+                    <MessageBubble
                         key={msg.id}
-                        className={`flex gap-3 ${
-                            msg.role === "user" ? "flex-row-reverse" : ""
-                        }`}
-                    >
-                        {/* Avatar */}
-                        <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 
-              ${
-                  msg.role === "user"
-                      ? "bg-stone-800 text-white"
-                      : "bg-white border border-stone-200 text-orange-500"
-              }`}
-                        >
-                            {msg.role === "user" ? (
-                                <User size={14} />
-                            ) : (
-                                <Bot size={16} />
-                            )}
-                        </div>
-
-                        {/* Bubble */}
-                        <div
-                            className={`max-w-[80%] rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-sm
-              ${
-                  msg.role === "user"
-                      ? "bg-stone-800 text-white rounded-tr-sm"
-                      : "bg-white text-stone-700 border border-stone-100 rounded-tl-sm"
-              }`}
-                        >
-                            {msg.text}
-                        </div>
-                    </div>
+                        message={msg}
+                        shouldType={msg.isNew && msg.role === "assistant"}
+                    />
                 ))}
 
                 {loading && (
