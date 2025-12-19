@@ -3,6 +3,7 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import sanitizeHtml from "sanitize-html";
 import { supabase } from "../lib/supabase";
+import { logger } from "../lib/logger";
 import type { Variables } from "../index";
 
 const devotions = new Hono<{ Variables: Variables }>();
@@ -53,7 +54,18 @@ devotions.post(
             .select()
             .single();
 
-        if (error) return c.json({ error: error.message }, 500);
+        if (error) {
+            logger.error("Failed to create devotion", error, {
+                userId: user.id,
+            });
+            return c.json({ error: error.message }, 500);
+        }
+
+        logger.info("Devotion created successfully", {
+            userId: user.id,
+            devotionId: data.id,
+        });
+
         return c.json({ success: true, devotion: data });
     }
 );
@@ -69,7 +81,19 @@ devotions.get("/:id", async (c) => {
         .eq("id", id)
         .single();
 
-    if (error) return c.json({ error: "Devotion not found" }, 404);
+    if (error) {
+        logger.warn("Devotion not found", {
+            userId: user.id,
+            devotionId: id,
+        });
+        return c.json({ error: "Devotion not found" }, 404);
+    }
+
+    logger.debug("Devotion retrieved", {
+        userId: user.id,
+        devotionId: id,
+    });
+
     return c.json(data);
 });
 
@@ -84,7 +108,18 @@ devotions.get("/", async (c) => {
         .order("created_at", { ascending: false })
         .limit(20);
 
-    if (error) return c.json({ error: error.message }, 500);
+    if (error) {
+        logger.error("Failed to fetch devotions", error, {
+            userId: user.id,
+        });
+        return c.json({ error: error.message }, 500);
+    }
+
+    logger.debug("Devotions list retrieved", {
+        userId: user.id,
+        count: data?.length || 0,
+    });
+
     return c.json(data);
 });
 

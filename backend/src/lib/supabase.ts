@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_KEY!;
+import { env } from "./env";
 
 // This creates a single instance we can import anywhere
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Uses type-safe environment variables validated at startup
+export const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
