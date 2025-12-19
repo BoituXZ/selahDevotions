@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../AuthProvider";
 import { api } from "../api";
 
 interface StreakData {
@@ -8,7 +7,6 @@ interface StreakData {
 }
 
 export default function Dashboard() {
-    const { user } = useAuth();
     const [streak, setStreak] = useState<StreakData | null>(null);
 
     useEffect(() => {
