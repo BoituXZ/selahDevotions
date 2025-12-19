@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import * as sanitizeHtml from "sanitize-html";
+import sanitizeHtml from "sanitize-html";
 import { supabase } from "../lib/supabase";
 import type { Variables } from "../index";
 
@@ -57,6 +57,21 @@ devotions.post(
         return c.json({ success: true, devotion: data });
     }
 );
+
+devotions.get("/:id", async (c) => {
+    const user = c.get("user");
+    const id = c.req.param("id");
+
+    const { data, error } = await supabase
+        .from("devotions")
+        .select("*")
+        .eq("user_id", user.id) // Security: Ensure they own it!
+        .eq("id", id)
+        .single();
+
+    if (error) return c.json({ error: "Devotion not found" }, 404);
+    return c.json(data);
+});
 
 // GET remains mostly the same, but now serves clean data
 devotions.get("/", async (c) => {

@@ -1,2 +1,4 @@
 # deps
 node_modules/
+service-account.json
+CLAUDE.md

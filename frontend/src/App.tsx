@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import Devotions from "./pages/Devotions";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
+import DevotionDetail from "./pages/DevotionDetail";
 
 function ProtectedLayout() {
     const { user, loading } = useAuth();
@@ -38,6 +39,10 @@ export default function App() {
                     <Route element={<ProtectedLayout />}>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/devotions" element={<Devotions />} />
+                        <Route
+                            path="/devotions/:id"
+                            element={<DevotionDetail />}
+                        />
                         <Route path="/chat" element={<Chat />} />
                         <Route path="/profile" element={<Profile />} />
                     </Route>

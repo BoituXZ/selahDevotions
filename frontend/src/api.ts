@@ -1,6 +1,6 @@
 import { supabase } from "./auth/supabase";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 // A generic wrapper for fetch
 async function request<T>(
