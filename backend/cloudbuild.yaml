@@ -1,11 +1,10 @@
-# backend/cloudbuild.yaml
 steps:
     # 1. Build the Container
     - name: "gcr.io/cloud-builders/docker"
       args: ["build", "-t", "gcr.io/$PROJECT_ID/selah-backend:$COMMIT_SHA", "."]
-      dir: "backend" # Run this command inside the backend folder
+      dir: "backend"
 
-    # 2. Push the Container to Registry
+    # 2. Push the Container
     - name: "gcr.io/cloud-builders/docker"
       args: ["push", "gcr.io/$PROJECT_ID/selah-backend:$COMMIT_SHA"]
 
@@ -24,3 +23,7 @@ steps:
 
 images:
     - "gcr.io/$PROJECT_ID/selah-backend:$COMMIT_SHA"
+
+# THIS IS THE FIX:
+options:
+    logging: CLOUD_LOGGING_ONLY
