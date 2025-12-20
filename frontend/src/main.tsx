@@ -3,8 +3,8 @@ import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// 1. Import PostHog
-import { PostHogProvider } from "posthog-js/react";
+// 1. Import PostHog with non-blocking error boundary
+import { PostHogErrorBoundary } from "./components/PostHogErrorBoundary";
 
 // 2. Import Vercel Analytics
 import { Analytics } from "@vercel/analytics/react";
@@ -32,13 +32,14 @@ const posthogOptions = {
 // Initialize global error handlers before rendering
 initGlobalErrorHandlers();
 
-// Initialize version check and render app
-initVersionCheck().then(() => {
+// Render function
+const renderApp = () => {
+    console.log("🚀 Rendering Selah app...");
     ReactDOM.createRoot(document.getElementById("root")!).render(
         <React.StrictMode>
             <ErrorBoundary>
-                {/* PostHog tracks the USER */}
-                <PostHogProvider
+                {/* PostHog tracks the USER - wrapped in error boundary to prevent blocking */}
+                <PostHogErrorBoundary
                     apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
                     options={posthogOptions}
                 >
@@ -46,8 +47,36 @@ initVersionCheck().then(() => {
 
                     {/* Vercel tracks the PERFORMANCE */}
                     <Analytics />
-                </PostHogProvider>
+                </PostHogErrorBoundary>
             </ErrorBoundary>
         </React.StrictMode>
     );
-});
+};
+
+// Initialize version check with safety timeout to prevent hanging
+let hasRendered = false;
+
+const safeRender = () => {
+    if (!hasRendered) {
+        hasRendered = true;
+        renderApp();
+    }
+};
+
+// Set a fallback timeout - render app after 2 seconds no matter what
+const fallbackTimer = setTimeout(() => {
+    console.warn("⚠️ Version check timeout - rendering app anyway");
+    safeRender();
+}, 2000);
+
+// Try to run version check, but don't block rendering
+initVersionCheck()
+    .then(() => {
+        clearTimeout(fallbackTimer);
+        safeRender();
+    })
+    .catch((err) => {
+        console.error("❌ Version check failed:", err);
+        clearTimeout(fallbackTimer);
+        safeRender();
+    });

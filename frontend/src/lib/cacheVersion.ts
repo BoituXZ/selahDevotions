@@ -20,18 +20,29 @@ export const isVersionMismatch = (): boolean => {
  * Called when version mismatch is detected
  */
 export const clearStaleData = async (): Promise<void> => {
-    console.log(`Clearing stale data. Old version: ${localStorage.getItem("app_version")}, New version: ${APP_VERSION}`);
+    console.log(
+        `Clearing stale data. Old version: ${localStorage.getItem(
+            "app_version"
+        )}, New version: ${APP_VERSION}`
+    );
 
-    // Preserve important localStorage keys
+    // Preserve important localStorage keys (NOT auth tokens - those should be refreshed)
     const preserve = ["hasSeenWelcome", "theme", "preferences"];
     const toRestore: Record<string, string> = {};
 
-    preserve.forEach(key => {
+    preserve.forEach((key) => {
         const val = localStorage.getItem(key);
         if (val) toRestore[key] = val;
     });
 
-    // Clear all localStorage
+    // Log Supabase auth tokens being cleared (for debugging)
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("sb-") && key.includes("-auth-token")) {
+        }
+    }
+
+    // Clear all localStorage (including Supabase auth tokens)
     localStorage.clear();
 
     // Restore preserved keys
@@ -42,9 +53,7 @@ export const clearStaleData = async (): Promise<void> => {
     // Clear all Cache API caches
     try {
         const cacheNames = await caches.keys();
-        await Promise.all(
-            cacheNames.map(name => caches.delete(name))
-        );
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
         console.log(`Cleared ${cacheNames.length} cache(s):`, cacheNames);
     } catch (err) {
         console.error("Failed to clear caches:", err);
@@ -64,13 +73,17 @@ export const initVersionCheck = async (): Promise<void> => {
 
     if (!storedVersion) {
         // First time user - just set version
-        console.log(`First launch or no version stored. Setting version: ${APP_VERSION}`);
+        console.log(
+            `First launch or no version stored. Setting version: ${APP_VERSION}`
+        );
         localStorage.setItem("app_version", APP_VERSION);
         return;
     }
 
     if (isVersionMismatch()) {
-        console.warn(`Version mismatch detected! Stored: ${storedVersion}, Current: ${APP_VERSION}`);
+        console.warn(
+            `Version mismatch detected! Stored: ${storedVersion}, Current: ${APP_VERSION}`
+        );
         await clearStaleData();
 
         // Log to PostHog if available
