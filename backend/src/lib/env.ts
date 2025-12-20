@@ -1,67 +1,39 @@
 import { z } from "zod";
+import dotenv from "dotenv";
 
-// ============================================
-// Schema Definition
-// ============================================
+// Load .env file (if local)
+dotenv.config();
+
 const envSchema = z.object({
-    // Google Cloud
-    GOOGLE_CLOUD_PROJECT: z.string().min(1, "Google Cloud project ID required"),
-    GOOGLE_CLOUD_LOCATION: z.string().default("global"),
-
-    // Supabase
-    SUPABASE_URL: z.string().url("Invalid Supabase URL"),
-    SUPABASE_KEY: z.string().min(1, "Supabase key required"),
-
-    // Frontend
-    FRONTEND_URL: z.string().url("Invalid frontend URL"),
-
-    // Optional
     NODE_ENV: z
         .enum(["development", "production", "test"])
         .default("development"),
-    LOG_LEVEL: z
-        .enum(["debug", "info", "warn", "error"])
-        .default("info"),
-    PORT: z
+    PORT: z.string().default("8080"),
+
+    // App Secrets (Required)
+    SUPABASE_URL: z.string().min(1, "Supabase URL is required"),
+    SUPABASE_KEY: z.string().min(1, "Supabase Key is required"),
+
+    // Google Cloud & AI (Required for Vertex AI)
+    GOOGLE_CLOUD_PROJECT: z
         .string()
-        .regex(/^\d+$/)
-        .transform(Number)
-        .default("3000"),
+        .min(1, "Google Cloud Project ID is required"),
+    GOOGLE_CLOUD_LOCATION: z.string().default("us-central1"),
+
+    // Optional / Defaults
+    FRONTEND_URL: z.string().default("*"),
+    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 
-export type Env = z.infer<typeof envSchema>;
+// Validate
+const _env = envSchema.safeParse(process.env);
 
-// ============================================
-// Validation Function
-// ============================================
-export function validateEnv(): Env {
-    try {
-        return envSchema.parse(process.env);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            console.error("❌ Environment validation failed:\n");
-
-            error.errors.forEach((err) => {
-                console.error(`  • ${err.path.join(".")}: ${err.message}`);
-            });
-
-            console.error("\n💡 Required environment variables:");
-            console.error("  - GOOGLE_CLOUD_PROJECT");
-            console.error("  - SUPABASE_URL");
-            console.error("  - SUPABASE_KEY");
-            console.error("  - FRONTEND_URL");
-
-            console.error(
-                "\n📝 Create a .env file in /backend with these values.\n"
-            );
-
-            process.exit(1);
-        }
-        throw error;
-    }
+if (!_env.success) {
+    console.error("❌ INVALID ENVIRONMENT VARIABLES:");
+    console.error(JSON.stringify(_env.error.format(), null, 2));
+    throw new Error(
+        "Environment validation failed. Check logs for missing keys."
+    );
 }
 
-// ============================================
-// Typed Environment Access
-// ============================================
-export const env = validateEnv();
+export const env = _env.data;

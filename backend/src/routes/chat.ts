@@ -4,7 +4,10 @@ import { zValidator } from "@hono/zod-validator";
 import { aiService, AIQuotaExceededError } from "../services/ai";
 import { logger } from "../lib/logger";
 import { rateLimitMiddleware } from "../middleware/rate-limit";
-import type { Variables } from "../index";
+
+type Variables = {
+    user?: { id: string };
+};
 
 const chat = new Hono<{ Variables: Variables }>();
 
