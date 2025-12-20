@@ -123,4 +123,8 @@ logger.info("Selah API initialized", {
     frontendUrl: env.FRONTEND_URL,
 });
 
-export default app;
+export default {
+    // Cloud Run injects the PORT variable (usually 8080)
+    port: process.env.PORT || 3000,
+    fetch: app.fetch,
+};
