@@ -52,7 +52,9 @@ export default function App() {
                         />
                         <Route
                             path="/register"
-                            element={<Navigate to="/auth?mode=register" replace />}
+                            element={
+                                <Navigate to="/auth?mode=register" replace />
+                            }
                         />
 
                         {/* Protected Routes */}

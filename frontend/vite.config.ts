@@ -9,11 +9,16 @@ export default defineConfig({
         tailwindcss(),
         VitePWA({
             registerType: "prompt",
-            includeAssets: ["favicon.ico", "apple-touch-icon.png", "pwa-192x192.png"],
+            includeAssets: [
+                "favicon.ico",
+                "apple-touch-icon.png",
+                "pwa-192x192.png",
+            ],
             manifest: {
                 name: "Selah - Biblical Devotions & AI Companion",
                 short_name: "Selah",
-                description: "Your daily companion for biblical devotions, reflection, and spiritual guidance",
+                description:
+                    "Your daily companion for biblical devotions, reflection, and spiritual guidance",
                 theme_color: "#1e40af",
                 background_color: "#ffffff",
                 display: "standalone",
