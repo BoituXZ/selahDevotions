@@ -18,7 +18,7 @@ export default function Register() {
             password,
             options: {
                 data: {
-                    name,
+                    full_name: name,
                 },
             },
         });

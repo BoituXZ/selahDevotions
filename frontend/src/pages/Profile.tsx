@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, BookHeart, Flame, LogOut } from "lucide-react";
+import {
+    Calendar,
+    BookHeart,
+    Flame,
+    LogOut,
+    Instagram,
+    Linkedin,
+    Mail,
+    Turntable,
+} from "lucide-react";
 import { supabase } from "../auth/supabase";
 import { useAuth } from "../AuthProvider";
 import { api } from "../api";
@@ -14,7 +23,7 @@ interface StreakData {
 }
 
 export default function Profile() {
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const navigate = useNavigate();
     const [devotionsCount, setDevotionsCount] = useState<number>(0);
     const [streak, setStreak] = useState<StreakData | null>(null);
@@ -54,8 +63,9 @@ export default function Profile() {
 
     if (!user) return null;
 
-    // Extract user name from email or metadata
-    const userName = user.user_metadata?.name || "Friend";
+    // Extract user name from profile or email
+    const userName =
+        profile?.full_name || user.email?.split("@")[0] || "Friend";
     const memberSince = new Date(user.created_at).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
@@ -140,7 +150,10 @@ export default function Profile() {
                 </div>
 
                 {/* Settings Section (Placeholder for future) */}
-                <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-6 animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0" style={{ animationDelay: "400ms" }}>
+                <div
+                    className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-6 animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0"
+                    style={{ animationDelay: "400ms" }}
+                >
                     <h2 className="text-xl font-serif text-stone-800 mb-4">
                         Settings
                     </h2>
@@ -149,10 +162,111 @@ export default function Profile() {
                     </p>
                 </div>
 
+                {/* Credits & Connect Card */}
+                <div
+                    className="bg-white rounded-xl shadow-sm border border-stone-200 p-8 mb-6 animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0"
+                    style={{ animationDelay: "500ms" }}
+                >
+                    <h2 className="text-2xl font-serif text-stone-800 mb-6 text-center">
+                        Connect with the Creator
+                    </h2>
+
+                    {/* Social Links */}
+                    <div className="space-y-3 mb-6">
+                        {/* Instagram */}
+                        <a
+                            href="https://instagram.com/b0ituu"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 transition-colors duration-200 group"
+                        >
+                            <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-2 rounded-lg text-white">
+                                <Instagram size={20} />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm text-stone-500">
+                                    Instagram
+                                </p>
+                                <p className="text-stone-800 font-medium group-hover:text-stone-600">
+                                    @b0ituu
+                                </p>
+                            </div>
+                        </a>
+
+                        {/* LinkedIn */}
+                        <a
+                            href="https://www.linkedin.com/in/boituxz/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 transition-colors duration-200 group"
+                        >
+                            <div className="bg-[#0A66C2] p-2 rounded-lg text-white">
+                                <Linkedin size={20} />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm text-stone-500">
+                                    LinkedIn
+                                </p>
+                                <p className="text-stone-800 font-medium group-hover:text-stone-600">
+                                    Boitu
+                                </p>
+                            </div>
+                        </a>
+
+                        {/* Email */}
+                        <a
+                            href="mailto:boituu.xz@gmail.com"
+                            className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 transition-colors duration-200 group"
+                        >
+                            <div className="bg-stone-700 p-2 rounded-lg text-white">
+                                <Mail size={20} />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm text-stone-500">Email</p>
+                                <p className="text-stone-800 font-medium group-hover:text-stone-600">
+                                    boituu.xz@gmail.com
+                                </p>
+                            </div>
+                        </a>
+                        <a
+                            href="https://open.spotify.com/playlist/7HKpLTkiJYRKGQs6ZJypzr?si=51660fdc4341448d"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 transition-colors duration-200 group"
+                        >
+                            <div className="bg-[#1ed760] p-2 rounded-lg text-black">
+                                <Turntable size={20} />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm text-stone-500">
+                                    Spotify Playlist
+                                </p>
+                                <p className="text-stone-800 font-medium group-hover:text-stone-600">
+                                    Boitu
+                                </p>
+                            </div>
+                        </a>
+                    </div>
+
+                    {/* Quirky Note */}
+                    <div className="border-t border-stone-200 pt-6 mb-4">
+                        <p className="text-center text-stone-600 italic text-sm">
+                            "Built with code, coffee, and a lot of grace."
+                        </p>
+                    </div>
+
+                    {/* Footer Version */}
+                    <div className="text-center">
+                        <p className="text-xs text-stone-400">
+                            Selah App v1.0.0
+                        </p>
+                    </div>
+                </div>
+
                 {/* Danger Zone - Logout */}
                 <div
                     className="bg-white rounded-xl shadow-sm border border-red-200 p-6 animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0"
-                    style={{ animationDelay: "500ms" }}
+                    style={{ animationDelay: "600ms" }}
                 >
                     <h2 className="text-xl font-serif text-stone-800 mb-2">
                         Sign Out

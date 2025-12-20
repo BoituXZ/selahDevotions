@@ -1,4 +1,4 @@
-const COMMUNITY_LINK = "#";
+const COMMUNITY_LINK = "https://chat.whatsapp.com/Bm0oDO8Yoq2D3KvAGHbvtG";
 
 interface WelcomeModalProps {
     isOpen: boolean;
@@ -39,8 +39,8 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
                     </p>
 
                     <p>
-                        But this is a passion project I created in a day. The
-                        AI we use here is just for quick help. It has limited
+                        But this is a passion project I created in a day. The AI
+                        we use here is just for quick help. It has limited
                         responses, and when you hit that limit, maybe it's a
                         sign to read your Bible? I think so.
                     </p>
