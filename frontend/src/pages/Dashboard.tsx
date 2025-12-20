@@ -4,6 +4,7 @@ import { MoveRight, Sparkles, BookOpen } from "lucide-react";
 import { api } from "../api";
 import { useAuth } from "../AuthProvider";
 import WelcomeModal from "../components/WelcomeModal";
+import IndieTips from "../components/IndieTips";
 import type { Devotion } from "../types/types";
 
 interface StreakData {
@@ -138,6 +139,9 @@ export default function Dashboard() {
                         </Link>
 
                     </main>
+
+                    {/* Indie Vibe Tip */}
+                    <IndieTips />
                 </div>
             </div>
         </>

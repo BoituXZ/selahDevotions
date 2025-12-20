@@ -2,18 +2,17 @@
 FROM oven/bun:1 as base
 WORKDIR /app
 
-# 1. Install dependencies
+# Install dependencies
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
-# 2. Copy source code
+# Copy source code
 COPY src ./src
 COPY tsconfig.json .
 
-# 3. Environment setup
+# Set environment
 ENV NODE_ENV=production
-ENV PORT=8080
+# Note: We removed ENV PORT=8080. We let Cloud Run inject it.
 
-# 4. Start command
-EXPOSE 8080
+# Start command
 CMD ["bun", "run", "src/index.ts"]

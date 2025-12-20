@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import type { Devotion } from "../types/types";
 import DevotionCard from "../components/DevotionCard";
 import CreateDevotionModal from "../components/CreateDevotionModal";
+import IndieTips from "../components/IndieTips";
 
 const Devotions = () => {
     const [devotions, setDevotions] = useState<Devotion[]>([]);
@@ -90,6 +91,9 @@ const Devotions = () => {
                         fetchDevotions();
                     }}
                 />
+
+                {/* Indie Vibe Tip */}
+                <IndieTips />
             </div>
         </div>
     );
