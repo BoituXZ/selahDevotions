@@ -10,11 +10,11 @@ export default function Layout() {
     ];
 
     return (
-        <div className="min-h-screen bg-stone-50 flex flex-col md:flex-row">
+        <div className="h-screen w-full bg-stone-50 flex flex-col md:flex-row overflow-hidden">
             {/* --- DESKTOP SIDEBAR --- */}
-            <aside className="hidden md:flex flex-col w-64 bg-white border-r border-stone-200 h-screen sticky top-0">
+            <aside className="hidden md:flex flex-col w-64 bg-white border-r border-stone-200 h-full">
                 <div className="p-8">
-                    <h1 className="text-3xl font-serif text-stone-900 tracking-tight">
+                    <h1 className="text-3xl font-serif font-bold text-stone-900 tracking-tight">
                         Selah.
                     </h1>
                 </div>
@@ -33,30 +33,28 @@ export default function Layout() {
                 }
               `}
                         >
-                            <item.icon size={20} />
+                            <item.icon size={20} strokeWidth={1.5} />
                             <span className="font-medium">{item.name}</span>
                         </NavLink>
                     ))}
                 </nav>
-
-                <div className="p-8 text-xs text-stone-400">v1.0.0 Alpha</div>
             </aside>
 
             {/* --- MAIN CONTENT AREA --- */}
-            <main className="flex-1 overflow-y-auto h-[calc(100vh-80px)] md:h-screen">
+            {/* We make this flex-1 and overflow-hidden so the children pages can decide how to scroll */}
+            <main className="flex-1 relative flex flex-col overflow-hidden">
                 <Outlet />
             </main>
 
             {/* --- MOBILE BOTTOM NAV --- */}
-            {/* --- MOBILE BOTTOM NAV --- */}
-            <nav className="md:hidden fixed bottom-0 w-90 bg-white/50 border border-white/50  m-2 p-2 rounded-4xl flex justify-around z-50  shadow-2xl shadow-black/40">
+            <nav className="md:hidden fixed bottom-4 left-4 right-4 bg-[#1c1917]/90 backdrop-blur-md border border-stone-800 p-2 rounded-2xl flex justify-around z-50 shadow-2xl shadow-stone-900/30">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) => `
-              flex flex-col items-center gap-1 transition-colors
-              ${isActive ? "text-stone-900" : "text-stone-500"}
+              flex flex-col items-center gap-1 transition-colors p-2 rounded-xl
+              ${isActive ? "text-white bg-white/10" : "text-stone-400"}
             `}
                     >
                         {/* Use a function here to access 'isActive' for the Icon properties
@@ -65,11 +63,13 @@ export default function Layout() {
                             <>
                                 <item.icon
                                     size={22}
-                                    strokeWidth={isActive ? 2.5 : 2}
+                                    strokeWidth={1.5}
                                 />
-                                <span className="text-[10px] font-medium">
-                                    {item.name}
-                                </span>
+                                {isActive && (
+                                    <span className="text-[10px] font-medium font-serif">
+                                        {item.name}
+                                    </span>
+                                )}
                             </>
                         )}
                     </NavLink>

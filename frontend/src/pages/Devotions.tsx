@@ -4,19 +4,24 @@ import { api } from "../api";
 import { useNavigate } from "react-router-dom";
 import type { Devotion } from "../types/types";
 import DevotionCard from "../components/DevotionCard";
-import CreateDevotionModal from "../components/CreateDevotionModal"; // <-- Import
+import CreateDevotionModal from "../components/CreateDevotionModal";
 
 const Devotions = () => {
     const [devotions, setDevotions] = useState<Devotion[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false); // <-- Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const navigate = useNavigate();
 
-    // Move fetch to a function so we can reuse it
     const fetchDevotions = useCallback(async () => {
         try {
             const response = await api.get<Devotion[]>("/api/devotions");
-            if (response) setDevotions(response);
+            if (response) {
+                // Sort by date desc
+                const sorted = response.sort((a, b) => 
+                    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                );
+                setDevotions(sorted);
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -29,55 +34,63 @@ const Devotions = () => {
     }, [fetchDevotions]);
 
     return (
-        <div className="max-w-3xl mx-auto p-6 space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-serif text-stone-800">
-                    My Devotions
-                </h1>
-                <button
-                    onClick={() => setIsModalOpen(true)} // <-- Open Modal
-                    className="flex items-center gap-2 bg-stone-900 text-white px-4 py-2 rounded-lg hover:bg-stone-700 transition"
-                >
-                    <Plus size={18} />
-                    <span>New Entry</span>
-                </button>
-            </div>
-
-            {/* List */}
-            <div className="grid gap-4">
-                {loading ? (
-                    <p>Loading...</p>
-                ) : devotions.length === 0 ? (
-                    <div className="text-center py-12 bg-white rounded-xl border border-stone-200 border-dashed">
-                        <p className="text-stone-500 italic mb-2">
-                            "Be still, and know that I am God."
-                        </p>
-                        <p className="text-sm text-stone-400">
-                            No entries yet. Start your first devotion above.
+        <div className="flex-1 overflow-y-auto bg-stone-50 pb-28 md:pb-12 p-6 md:p-12">
+            <div className="max-w-5xl mx-auto space-y-8">
+                {/* Header */}
+                <div className="flex justify-between items-end border-b border-stone-200 pb-6">
+                    <div>
+                        <h1 className="text-4xl font-serif text-stone-800">
+                            The Journal
+                        </h1>
+                        <p className="text-stone-500 mt-2">
+                            Reflect on your walk with Him.
                         </p>
                     </div>
-                ) : (
-                    devotions.map((devotion) => (
-                        <DevotionCard
-                            key={devotion.id}
-                            devotion={devotion}
-                            onClick={() =>
-                                navigate(`/devotions/${devotion.id}`)
-                            }
-                        />
-                    ))
-                )}
-            </div>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center gap-2 bg-stone-900 text-white px-4 py-2 text-sm md:px-5 md:py-3 md:text-base rounded-lg hover:bg-stone-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                    >
+                        <Plus size={16} strokeWidth={1.5} />
+                        <span className="font-medium">New Entry</span>
+                    </button>
+                </div>
 
-            {/* The Modal */}
-            <CreateDevotionModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSuccess={() => {
-                    // When saved, re-fetch the list to show the new item immediately
-                    fetchDevotions();
-                }}
-            />
+                {/* Grid List */}
+                <div className="min-h-[200px]">
+                    {loading ? (
+                        <div className="text-stone-400 text-center py-12">Loading sanctuary...</div>
+                    ) : devotions.length === 0 ? (
+                        <div className="text-center py-20 bg-white rounded-2xl border border-stone-200 border-dashed">
+                            <p className="text-stone-400 italic mb-4 font-serif text-xl">
+                                "Be still, and know that I am God."
+                            </p>
+                            <p className="text-sm text-stone-500">
+                                No entries yet. Start your first devotion above.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {devotions.map((devotion) => (
+                                <DevotionCard
+                                    key={devotion.id}
+                                    devotion={devotion}
+                                    onClick={() =>
+                                        navigate(`/devotions/${devotion.id}`)
+                                    }
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <CreateDevotionModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSuccess={() => {
+                        fetchDevotions();
+                    }}
+                />
+            </div>
         </div>
     );
 };

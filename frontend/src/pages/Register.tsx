@@ -4,6 +4,7 @@ import { supabase } from "../auth/supabase";
 
 export default function Register() {
     const [loading, setLoading] = useState(false);
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
@@ -15,6 +16,11 @@ export default function Register() {
         const { error } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+                data: {
+                    name,
+                },
+            },
         });
 
         if (error) {
@@ -39,6 +45,14 @@ export default function Register() {
                 </p>
 
                 <form onSubmit={handleRegister} className="flex flex-col gap-4">
+                    <input
+                        className="p-3 border border-stone-300 rounded focus:ring-2 focus:ring-stone-500 outline-none transition"
+                        type="text"
+                        placeholder="Your Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                    />
                     <input
                         className="p-3 border border-stone-300 rounded focus:ring-2 focus:ring-stone-500 outline-none transition"
                         type="email"

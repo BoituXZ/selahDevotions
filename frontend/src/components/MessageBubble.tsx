@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, Bot } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useTypingEffect } from "../hooks/useTypingEffect";
 
 interface Message {
@@ -43,28 +43,19 @@ export default function MessageBubble({
 
     return (
         <div
-            className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : ""} animate-[slideUp_0.3s_ease-out] group`}
+            className={`flex gap-4 ${message.role === "user" ? "flex-row-reverse" : ""} animate-[slideUp_0.3s_ease-out] group`}
             onMouseEnter={() => setShowTimestamp(true)}
             onMouseLeave={() => setShowTimestamp(false)}
         >
             {/* Avatar */}
-            <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110
-          ${
-              message.role === "user"
-                  ? "bg-stone-800 text-white"
-                  : "bg-white border border-stone-200 text-orange-500"
-          }`}
-            >
-                {message.role === "user" ? (
-                    <User size={14} />
-                ) : (
-                    <Bot size={16} />
-                )}
-            </div>
+            {message.role === "assistant" ? (
+                <div className="w-8 h-8 rounded-full bg-white border border-stone-200 flex items-center justify-center shrink-0 text-stone-400">
+                    <Sparkles size={14} strokeWidth={1.5} />
+                </div>
+            ) : null}
 
             {/* Bubble with Timestamp */}
-            <div className="relative flex-1 max-w-[80%]">
+            <div className={`relative flex-1 max-w-[80%] ${message.role === "user" ? "flex justify-end" : ""}`}>
                 {/* Timestamp (shows on hover) */}
                 {showTimestamp && (
                     <div
@@ -78,19 +69,21 @@ export default function MessageBubble({
 
                 {/* Message Bubble */}
                 <div
-                    className={`rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-sm transition-all duration-200 group-hover:shadow-md
+                    className={`px-6 py-4 text-sm leading-relaxed shadow-sm transition-all duration-200
           ${
               message.role === "user"
-                  ? "bg-stone-800 text-white rounded-tr-sm"
-                  : "bg-white text-stone-700 border border-stone-100 rounded-tl-sm"
+                  ? "bg-stone-800 text-white rounded-2xl rounded-tr-sm"
+                  : "bg-white text-stone-800 border border-stone-100 rounded-2xl rounded-tl-sm shadow-stone-100"
           }`}
                 >
-                    {shouldType ? displayedText : message.text}
-                    {isTyping && (
-                        <span className="inline-block w-1 h-4 bg-stone-400 ml-1 animate-pulse">
-                            |
-                        </span>
-                    )}
+                    <p className="font-sans">
+                        {shouldType ? displayedText : message.text}
+                        {isTyping && (
+                            <span className="inline-block w-1 h-4 bg-stone-400 ml-1 animate-pulse">
+                                |
+                            </span>
+                        )}
+                    </p>
                 </div>
             </div>
         </div>

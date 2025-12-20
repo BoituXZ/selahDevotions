@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { MoveRight, Sparkles, BookOpen } from "lucide-react";
 import { api } from "../api";
+import { useAuth } from "../AuthProvider";
 import WelcomeModal from "../components/WelcomeModal";
+import type { Devotion } from "../types/types";
 
 interface StreakData {
     current_streak: number;
@@ -8,23 +12,40 @@ interface StreakData {
 }
 
 export default function Dashboard() {
+    const { user } = useAuth();
     const [streak, setStreak] = useState<StreakData | null>(null);
+    const [latestDevotion, setLatestDevotion] = useState<Devotion | null>(null);
+    const [devotionCount, setDevotionCount] = useState(0);
     const [showWelcome, setShowWelcome] = useState(false);
 
     // Check localStorage on mount for welcome modal
     useEffect(() => {
         const hasSeenWelcome = localStorage.getItem("hasSeenWelcome");
         if (!hasSeenWelcome) {
-            // Delay modal slightly to avoid jarring appearance
             setTimeout(() => setShowWelcome(true), 300);
         }
     }, []);
 
-    // Fetch streak data
+    // Fetch data
     useEffect(() => {
+        // Fetch Streak
         api.get<StreakData>("/api/streaks")
             .then(setStreak)
             .catch((err) => console.error("Streak fetch failed:", err));
+
+        // Fetch Devotions (for count and latest)
+        api.get<Devotion[]>("/api/devotions")
+            .then((data) => {
+                setDevotionCount(data.length);
+                if (data.length > 0) {
+                    // Assuming API returns sorted, otherwise sort by date desc
+                    const sorted = data.sort((a, b) => 
+                        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                    );
+                    setLatestDevotion(sorted[0]);
+                }
+            })
+            .catch((err) => console.error("Devotions fetch failed:", err));
     }, []);
 
     const handleWelcomeClose = () => {
@@ -32,39 +53,91 @@ export default function Dashboard() {
         setShowWelcome(false);
     };
 
+    const userName = user?.user_metadata?.name || "Friend";
+
     return (
         <>
             <WelcomeModal isOpen={showWelcome} onClose={handleWelcomeClose} />
 
-            <div className="min-h-screen bg-stone-50">
-                <div className="max-w-2xl mx-auto p-8">
-                <header className="mb-12 flex justify-between items-end border-b border-stone-200 pb-4">
-                    <div>
-                        <h1 className="text-4xl font-serif text-stone-800">
-                            Selah.
+            <div className="flex-1 overflow-y-auto bg-stone-50 pb-28 md:pb-12 p-6 md:p-12">
+                <div className="max-w-5xl mx-auto space-y-12">
+                    
+                    {/* Header Section */}
+                    <header className="space-y-4 animate-[fadeInUp_0.5s_ease-out]">
+                        <h1 className="text-4xl md:text-5xl font-serif text-stone-800 tracking-tight">
+                            Peace be with you, <span className="capitalize">{userName}</span>.
                         </h1>
-                        <p className="text-stone-500 mt-2">Welcome back.</p>
-                    </div>
+                        
+                        {/* Clean Stats Row */}
+                        <div className="flex items-center gap-3 text-stone-500 font-sans text-sm tracking-wide uppercase">
+                            <span>{streak?.current_streak || 0} Days Active</span>
+                            <span className="w-1 h-1 rounded-full bg-stone-300"></span>
+                            <span>{devotionCount} Prayers</span>
+                        </div>
+                    </header>
 
-                    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-stone-200">
-                        <span className="text-orange-500">🔥</span>
-                        <span className="font-bold text-stone-700">
-                            {streak?.current_streak || 0}
-                        </span>
-                    </div>
-                </header>
+                    {/* The Devotion Deck */}
+                    <main className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        {/* Left Card: Last Devotion / Continue Journey */}
+                        <Link 
+                            to={latestDevotion ? `/devotions/${latestDevotion.id}` : "/devotions"}
+                            className="group relative bg-white rounded-2xl p-8 shadow-sm border border-stone-100 hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col justify-between min-h-[280px]"
+                        >
+                            <div className="absolute top-0 left-0 w-2 h-full bg-[#A3B18A]" /> {/* Sage accent */}
+                            
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-[#A3B18A]">
+                                    <BookOpen size={20} strokeWidth={1.5} />
+                                    <span className="text-xs font-bold tracking-wider uppercase">
+                                        {latestDevotion ? "Continue your journey" : "Begin your journey"}
+                                    </span>
+                                </div>
+                                
+                                <h3 className="text-2xl font-serif text-stone-800 leading-tight group-hover:text-stone-600 transition-colors line-clamp-3">
+                                    {latestDevotion 
+                                        ? latestDevotion.content.replace(/<[^>]*>?/gm, "").substring(0, 100) + "..."
+                                        : "Start your first devotion today."}
+                                </h3>
+                            </div>
 
-                <main className="grid gap-6">
-                    {/* We will put the editor here later */}
-                    <div className="bg-white p-8 rounded-xl shadow-sm border border-stone-200 text-center py-12">
-                        <h2 className="text-2xl font-serif mb-4 text-stone-700">
-                            Pause & Reflect
-                        </h2>
-                        <button className="bg-stone-800 text-white px-8 py-3 rounded-lg hover:bg-stone-700 transition shadow-lg hover:shadow-xl translate-y-0 hover:-translate-y-1 duration-200">
-                            Start Today's Devotion
-                        </button>
-                    </div>
-                </main>
+                            <div className="flex items-center gap-2 text-stone-400 group-hover:text-stone-800 transition-colors mt-8">
+                                <span className="text-sm font-medium">Open Journal</span>
+                                <MoveRight size={16} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform" />
+                            </div>
+                        </Link>
+
+                        {/* Right Card: New Chat / Selah for a moment */}
+                        <Link 
+                            to="/chat"
+                            className="group relative bg-stone-900 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between min-h-[280px]"
+                        >
+                            {/* Decorative gradient blob */}
+                            <div className="absolute -top-20 -right-20 w-64 h-64 bg-stone-800 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity" />
+
+                            <div className="relative space-y-4 z-10">
+                                <div className="flex items-center gap-2 text-stone-400">
+                                    <Sparkles size={20} strokeWidth={1.5} />
+                                    <span className="text-xs font-bold tracking-wider uppercase">
+                                        New Reflection
+                                    </span>
+                                </div>
+                                
+                                <h3 className="text-3xl font-serif text-white leading-tight">
+                                    Selah for a moment...
+                                </h3>
+                                <p className="text-stone-400 font-sans leading-relaxed max-w-sm">
+                                    Find clarity and peace through conversation.
+                                </p>
+                            </div>
+
+                            <div className="relative flex items-center gap-2 text-stone-500 group-hover:text-white transition-colors mt-8 z-10">
+                                <span className="text-sm font-medium">Start Chat</span>
+                                <MoveRight size={16} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform" />
+                            </div>
+                        </Link>
+
+                    </main>
                 </div>
             </div>
         </>

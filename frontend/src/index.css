@@ -1,7 +1,7 @@
 @import "tailwindcss";
 /* Optional: Add a nice background color for the whole app */
 @theme {
-    --font-serif: "Merriweather", serif;
+    --font-serif: "Playfair Display", serif;
 }
 
 body {

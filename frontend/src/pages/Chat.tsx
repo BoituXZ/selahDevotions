@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles } from "lucide-react";
+import { Send } from "lucide-react";
 import { api } from "../api";
 import MessageBubble from "../components/MessageBubble";
 import TypingIndicator from "../components/TypingIndicator";
@@ -91,24 +91,16 @@ export default function Chat() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-64px)] md:h-screen max-w-4xl mx-auto bg-white border-x border-stone-100 shadow-sm">
+        <div className="flex flex-col h-full max-w-4xl mx-auto bg-stone-50 md:border-x border-stone-200 relative">
             {/* Header */}
-            <div className="p-4 border-b border-stone-100 flex items-center gap-3 bg-white/80 backdrop-blur sticky top-0 z-10">
-                <div className="bg-orange-100 p-2 rounded-full text-orange-600 animate-[pulse-subtle_3s_ease-in-out_infinite]">
-                    <Sparkles size={20} />
-                </div>
-                <div>
-                    <h1 className="font-serif font-medium text-stone-800">
-                        Theologian
-                    </h1>
-                    <p className="text-xs text-stone-500">
-                        Powered by Scripture & Gemini
-                    </p>
-                </div>
+            <div className="p-4 border-b border-stone-200 flex items-center justify-center bg-stone-50/80 backdrop-blur sticky top-0 z-10 shrink-0">
+                <h1 className="font-serif font-bold text-xl text-stone-800 tracking-tight">
+                    Selah
+                </h1>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-stone-50">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-stone-50 scrollbar-hide pb-4">
                 {messages.map((msg) => (
                     <MessageBubble
                         key={msg.id}
@@ -123,13 +115,13 @@ export default function Chat() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-stone-100">
-                <form onSubmit={handleSend} className="relative">
-                    <div className="flex gap-2 relative">
+            <div className="p-4 md:p-6 bg-stone-50 border-t border-stone-200 pb-24 md:pb-6 shrink-0">
+                <form onSubmit={handleSend} className="relative max-w-3xl mx-auto">
+                    <div className="flex gap-2 relative bg-white rounded-3xl shadow-sm border border-stone-200 focus-within:ring-2 focus-within:ring-stone-100 focus-within:border-stone-300 transition-all duration-300">
                         <input
                             type="text"
                             placeholder="Ask a question or share a burden..."
-                            className="flex-1 bg-stone-50 border border-stone-200 rounded-full px-6 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-stone-400 transition-all placeholder:text-stone-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 bg-transparent px-6 py-4 outline-none placeholder:text-stone-400 disabled:opacity-50 disabled:cursor-not-allowed font-sans text-stone-800"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             disabled={loading}
@@ -138,14 +130,14 @@ export default function Chat() {
                         <button
                             type="submit"
                             disabled={loading || !input.trim()}
-                            className="absolute right-2 top-1.5 p-1.5 bg-stone-900 text-white rounded-full hover:bg-stone-700 hover:scale-110 disabled:opacity-50 disabled:hover:bg-stone-900 disabled:hover:scale-100 transition-all duration-200 active:scale-95 shadow-lg hover:shadow-xl"
+                            className="absolute right-2 top-2 p-2 bg-stone-900 text-white rounded-full hover:bg-stone-700 disabled:opacity-0 disabled:scale-75 transition-all duration-200 shadow-md"
                         >
-                            <Send size={18} />
+                            <Send size={18} strokeWidth={1.5} />
                         </button>
                     </div>
                     {/* Character Counter */}
                     {showCounter && (
-                        <div className="text-xs text-stone-400 mt-1.5 text-right animate-[fadeIn_0.2s_ease-out]">
+                        <div className="text-xs text-stone-400 mt-2 text-right animate-[fadeIn_0.2s_ease-out]">
                             {charCount} / {maxChars}
                         </div>
                     )}

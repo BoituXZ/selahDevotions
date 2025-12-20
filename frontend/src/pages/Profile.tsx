@@ -55,17 +55,14 @@ export default function Profile() {
     if (!user) return null;
 
     // Extract user name from email or metadata
-    const userName =
-        user.user_metadata?.name ||
-        user.email?.split("@")[0] ||
-        "Friend";
+    const userName = user.user_metadata?.name || "Friend";
     const memberSince = new Date(user.created_at).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
     });
 
     return (
-        <div className="min-h-screen bg-stone-50 p-4 md:p-8">
+        <div className="flex-1 overflow-y-auto bg-stone-50 pb-28 md:pb-12 p-4 md:p-8">
             <div className="max-w-2xl mx-auto">
                 {/* Header Section */}
                 <div className="bg-white rounded-2xl shadow-lg p-8 mb-6 text-center animate-[scaleIn_0.5s_ease-out]">
