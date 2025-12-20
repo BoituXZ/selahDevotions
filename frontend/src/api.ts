@@ -39,13 +39,16 @@ async function request<T>(
     // 4. Handle errors
     if (!response.ok) {
         // Handle 401 Unauthorized (token expired or invalid)
-        if (response.status === 401) {
+        if (response.status === 401 || response.status === 403) {
+            console.error("Authentication failed - redirecting to login");
             toast.error("Your session has expired. Please log in again.", {
                 duration: 3000,
             });
             // Sign out and redirect to login
             await supabase.auth.signOut();
-            window.location.href = "/auth?mode=login";
+            setTimeout(() => {
+                window.location.href = "/auth?mode=login";
+            }, 500);
             throw new Error("Unauthorized");
         }
 

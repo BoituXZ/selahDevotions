@@ -48,17 +48,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // 1. Check active session on load
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
+        supabase.auth
+            .getSession()
+            .then(async ({ data: { session }, error }) => {
+                // If there's an error getting the session, redirect to login
+                if (error) {
+                    console.error("Session error:", error);
+                    window.location.href = "/auth?mode=login";
+                    return;
+                }
 
-            if (session?.user) {
-                const profileData = await fetchProfile(session.user.id);
-                setProfile(profileData);
-            }
+                setSession(session);
+                setUser(session?.user ?? null);
 
-            setLoading(false);
-        });
+                if (session?.user) {
+                    const profileData = await fetchProfile(session.user.id);
+                    setProfile(profileData);
+                }
+
+                setLoading(false);
+            });
 
         // 2. Listen for changes (login/logout)
         const {
