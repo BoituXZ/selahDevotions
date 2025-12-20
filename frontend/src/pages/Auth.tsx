@@ -61,7 +61,7 @@ export default function Auth() {
             password,
             options: {
                 data: {
-                    name,
+                    full_name: name,
                 },
             },
         });
@@ -215,8 +215,8 @@ export default function Auth() {
                         {loading
                             ? "..."
                             : mode === "login"
-                              ? "Enter Sanctuary"
-                              : "Begin Journey"}
+                            ? "Enter Sanctuary"
+                            : "Begin Journey"}
                     </button>
                 </form>
             </div>

@@ -63,9 +63,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // 2. Listen for changes (login/logout)
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
+
+            // Handle token expiration or sign out
+            if (event === "TOKEN_REFRESHED") {
+                console.log("Token refreshed successfully");
+            }
+
+            if (event === "SIGNED_OUT") {
+                setProfile(null);
+                // Redirect to login
+                window.location.href = "/auth?mode=login";
+            }
 
             if (session?.user) {
                 const profileData = await fetchProfile(session.user.id);

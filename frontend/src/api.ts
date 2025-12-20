@@ -18,6 +18,8 @@ async function request<T>(
     const token = session?.access_token;
 
     if (!token) {
+        // Redirect to login if no token
+        window.location.href = "/auth?mode=login";
         throw new Error("Not authenticated");
     }
 
@@ -36,6 +38,17 @@ async function request<T>(
 
     // 4. Handle errors
     if (!response.ok) {
+        // Handle 401 Unauthorized (token expired or invalid)
+        if (response.status === 401) {
+            toast.error("Your session has expired. Please log in again.", {
+                duration: 3000,
+            });
+            // Sign out and redirect to login
+            await supabase.auth.signOut();
+            window.location.href = "/auth?mode=login";
+            throw new Error("Unauthorized");
+        }
+
         // Special handling for 429 rate limit errors
         if (response.status === 429) {
             if (!rateToastShown) {
