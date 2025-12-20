@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./AuthProvider";
 import { Toaster } from "sonner";
 import Layout from "./components/Layout";
 import SelahLoader from "./components/ui/SelahLoader";
+import { ReloadPrompt } from "./components/ReloadPrompt";
 
 // Lazy Loaded Pages
 const Landing = lazy(() => import("./pages/Landing"));
@@ -36,6 +37,7 @@ export default function App() {
                         },
                     }}
                 />
+                <ReloadPrompt />
 
                 <Suspense fallback={<SelahLoader />}>
                     <Routes>
