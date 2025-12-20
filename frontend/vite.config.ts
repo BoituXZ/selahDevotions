@@ -2,13 +2,22 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { readFileSync } from "fs";
+
+// Read version from package.json
+const packageJson = JSON.parse(readFileSync("./package.json", "utf-8"));
+const appVersion = process.env.VITE_APP_VERSION || packageJson.version;
 
 export default defineConfig({
+    define: {
+        // Inject build version for cache versioning (uses package.json version)
+        "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
+    },
     plugins: [
         react(),
         tailwindcss(),
         VitePWA({
-            registerType: "prompt",
+            registerType: "autoUpdate",
             includeAssets: [
                 "favicon.ico",
                 "apple-touch-icon.png",
@@ -40,6 +49,12 @@ export default defineConfig({
                 ],
             },
             workbox: {
+                // Add cache versioning with package.json version (only changes when you bump version)
+                cacheId: `selah-v${appVersion}`,
+
+                // Auto-cleanup old caches
+                cleanupOutdatedCaches: true,
+
                 globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
                 runtimeCaching: [
                     {
@@ -75,10 +90,10 @@ export default defineConfig({
                         handler: "NetworkFirst",
                         options: {
                             cacheName: "supabase-api-cache",
-                            networkTimeoutSeconds: 10,
+                            networkTimeoutSeconds: 5, // Reduced from 10s
                             expiration: {
                                 maxEntries: 50,
-                                maxAgeSeconds: 60 * 5, // 5 minutes
+                                maxAgeSeconds: 60, // Reduced from 5 minutes to 1 minute
                             },
                             cacheableResponse: {
                                 statuses: [0, 200],
@@ -92,10 +107,10 @@ export default defineConfig({
                         handler: "NetworkFirst",
                         options: {
                             cacheName: "api-cache",
-                            networkTimeoutSeconds: 10,
+                            networkTimeoutSeconds: 5, // Reduced from 10s
                             expiration: {
                                 maxEntries: 50,
-                                maxAgeSeconds: 60 * 5, // 5 minutes
+                                maxAgeSeconds: 60, // Reduced from 5 minutes to 1 minute
                             },
                         },
                     },

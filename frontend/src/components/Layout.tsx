@@ -27,7 +27,7 @@ export default function Layout() {
         setIsMobileNavExpanded(true);
         timeoutRef.current = setTimeout(() => {
             setIsMobileNavExpanded(false);
-        }, 5000); // 5 seconds of inactivity
+        }, 2000); // 5 seconds of inactivity
     };
 
     // Initialize timer on mount
@@ -49,7 +49,7 @@ export default function Layout() {
             // If expanding, start the timer
             timeoutRef.current = setTimeout(() => {
                 setIsMobileNavExpanded(false);
-            }, 5000);
+            }, 2000);
         }
     };
 

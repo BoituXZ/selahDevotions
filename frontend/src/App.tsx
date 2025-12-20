@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import Layout from "./components/Layout";
 import SelahLoader from "./components/ui/SelahLoader";
 import { ReloadPrompt } from "./components/ReloadPrompt";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Lazy Loaded Pages
 const Landing = lazy(() => import("./pages/Landing"));
@@ -40,35 +41,37 @@ export default function App() {
                 <ReloadPrompt />
 
                 <Suspense fallback={<SelahLoader />}>
-                    <Routes>
-                        {/* Public Routes */}
-                        <Route path="/" element={<Landing />} />
-                        <Route path="/auth" element={<Auth />} />
+                    <ErrorBoundary>
+                        <Routes>
+                            {/* Public Routes */}
+                            <Route path="/" element={<Landing />} />
+                            <Route path="/auth" element={<Auth />} />
 
-                        {/* Legacy Redirects */}
-                        <Route
-                            path="/login"
-                            element={<Navigate to="/auth?mode=login" replace />}
-                        />
-                        <Route
-                            path="/register"
-                            element={
-                                <Navigate to="/auth?mode=register" replace />
-                            }
-                        />
-
-                        {/* Protected Routes */}
-                        <Route element={<ProtectedLayout />}>
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/devotions" element={<Devotions />} />
+                            {/* Legacy Redirects */}
                             <Route
-                                path="/devotions/:id"
-                                element={<DevotionDetail />}
+                                path="/login"
+                                element={<Navigate to="/auth?mode=login" replace />}
                             />
-                            <Route path="/chat" element={<Chat />} />
-                            <Route path="/profile" element={<Profile />} />
-                        </Route>
-                    </Routes>
+                            <Route
+                                path="/register"
+                                element={
+                                    <Navigate to="/auth?mode=register" replace />
+                                }
+                            />
+
+                            {/* Protected Routes */}
+                            <Route element={<ProtectedLayout />}>
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/devotions" element={<Devotions />} />
+                                <Route
+                                    path="/devotions/:id"
+                                    element={<DevotionDetail />}
+                                />
+                                <Route path="/chat" element={<Chat />} />
+                                <Route path="/profile" element={<Profile />} />
+                            </Route>
+                        </Routes>
+                    </ErrorBoundary>
                 </Suspense>
             </AuthProvider>
         </BrowserRouter>

@@ -47,27 +47,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     useEffect(() => {
-        // 1. Check active session on load
-        supabase.auth
-            .getSession()
-            .then(async ({ data: { session }, error }) => {
+        let sessionTimeout: number;
+        let isCancelled = false;
+
+        // 1. Check active session on load with timeout
+        const initAuth = async () => {
+            try {
+                // Set 10-second timeout for session restoration
+                sessionTimeout = setTimeout(() => {
+                    if (!isCancelled) {
+                        console.error("Session restoration timeout");
+                        setLoading(false);
+                        window.location.href = "/auth?mode=login&reason=timeout";
+                    }
+                }, 10000);
+
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                // Clear timeout on success
+                clearTimeout(sessionTimeout);
+
+                if (isCancelled) return;
+
                 // If there's an error getting the session, redirect to login
                 if (error) {
                     console.error("Session error:", error);
-                    window.location.href = "/auth?mode=login";
+                    setLoading(false);
+                    window.location.href = "/auth?mode=login&reason=error";
                     return;
                 }
 
                 setSession(session);
                 setUser(session?.user ?? null);
 
+                // Fetch profile with 5-second timeout (non-critical)
                 if (session?.user) {
-                    const profileData = await fetchProfile(session.user.id);
+                    const profilePromise = fetchProfile(session.user.id);
+                    const profileTimeout = new Promise<null>(resolve =>
+                        setTimeout(() => resolve(null), 5000)
+                    );
+                    const profileData = await Promise.race([profilePromise, profileTimeout]);
                     setProfile(profileData);
                 }
 
                 setLoading(false);
-            });
+            } catch (err) {
+                clearTimeout(sessionTimeout);
+                console.error("Auth initialization error:", err);
+                setLoading(false);
+                window.location.href = "/auth?mode=login&reason=crash";
+            }
+        };
+
+        initAuth();
 
         // 2. Listen for changes (login/logout)
         const {
@@ -97,7 +129,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isCancelled = true;
+            clearTimeout(sessionTimeout);
+            subscription.unsubscribe();
+        };
     }, []);
 
     return (
