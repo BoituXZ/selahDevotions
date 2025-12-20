@@ -2,17 +2,17 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
 
-// NOTE: We do NOT import './lib/env' at the top level anymore.
-// This prevents the app from crashing before it can even start.
-
 const app = new Hono();
 
 // ============================================
-// 1. Critical "Alive" Endpoints (Always Load)
+// 1. Stealth Mode (Public endpoints hidden)
 // ============================================
-// Cloud Run needs these to pass immediately, or it kills the app.
-app.get("/", (c) => c.text("Selah API is Running (Base Layer)"));
-app.get("/health", (c) => c.json({ status: "ok", mode: process.env.NODE_ENV }));
+// We return 404 on root so random visitors think the server is empty.
+app.get("/", (c) => c.notFound());
+
+// We keep /health for Cloud Run, but you can obfuscate it if you really want.
+// Cloud Run needs this 200 OK to know the container is alive.
+app.get("/health", (c) => c.json({ status: "ok" }));
 
 // ============================================
 // 2. Safe Loading of the "Real" App
@@ -20,8 +20,6 @@ app.get("/health", (c) => c.json({ status: "ok", mode: process.env.NODE_ENV }));
 try {
     console.log("🔄 Attempting to load environment and routes...");
 
-    // We use 'require' here so we can catch the error if validation fails
-    // (e.g. if SUPABASE_URL is missing)
     const { env } = require("./lib/env");
     const { logger } = require("./lib/logger");
     const { authMiddleware } = require("./middleware/auth");
@@ -40,22 +38,33 @@ try {
             contentSecurityPolicy: {
                 defaultSrc: ["'self'"],
                 scriptSrc: ["'self'", "'unsafe-inline'"],
-                connectSrc: ["'self'", env.FRONTEND_URL],
+                connectSrc: ["'self'", "https://selahi.vercel.app"], // Hardcoded for extra safety
             },
             crossOriginEmbedderPolicy: false,
             crossOriginResourcePolicy: "cross-origin",
         })
     );
 
-    // --- CORS ---
+    // --- STRICT CORS (The Doorman) ---
     app.use(
         "/*",
         cors({
             origin: (origin) => {
-                if (!origin) return env.FRONTEND_URL;
-                if (origin === env.FRONTEND_URL) return origin;
-                if (env.NODE_ENV === "development") return origin; // Allow localhost in dev
-                return env.FRONTEND_URL;
+                // 1. Allow your specific Vercel App
+                if (origin === "https://selahi.vercel.app") return origin;
+
+                // 2. Allow Localhost ONLY in Development
+                if (
+                    env.NODE_ENV === "development" &&
+                    (origin === "http://localhost:3000" ||
+                        origin === "http://localhost:5173")
+                ) {
+                    return origin;
+                }
+
+                // 3. Block everyone else (Postman, curl, other websites)
+                // Returning undefined/null causes the browser to reject the response.
+                return undefined;
             },
             allowHeaders: ["Content-Type", "Authorization"],
             allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -71,20 +80,11 @@ try {
 
     logger.info("Selah API fully initialized");
 } catch (error) {
-    // THIS IS THE SAFETY NET
-    // If env vars are missing, we log it but keep the server running
-    // so you can see the error in Cloud Run logs.
     console.error("❌ CRITICAL STARTUP ERROR:", error);
-
-    // Serve the error on /api routes so frontend developers know what's up
+    // If we crash, we still return JSON so you know why,
+    // but only on /api routes to keep the root stealthy.
     app.all("/api/*", (c) => {
-        return c.json(
-            {
-                error: "Server Initialization Failed",
-                details: String(error),
-            },
-            500
-        );
+        return c.json({ error: "Server Initialization Failed" }, 500);
     });
 }
 
