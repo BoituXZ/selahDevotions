@@ -8,8 +8,8 @@ import { logger } from "../lib/logger";
 export const AI_CONFIG = {
     LOCATION: "global",
     MODEL: "gemini-3-flash-preview",
-    MAX_TOKENS: 500, // Prevent runaway responses
-    TEMPERATURE: 0.7, // Balanced creativity
+    MAX_TOKENS: 2048,
+    TEMPERATURE: 0.7,
 } as const;
 
 export const SYSTEM_PROMPT = `
