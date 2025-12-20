@@ -60,7 +60,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Set 5-second timeout for session restoration (reduced from 10s)
                 sessionTimeout = setTimeout(() => {
                     if (!isCancelled) {
-                        console.error("❌ Session restoration timeout after 5 seconds");
+                        console.error(
+                            "❌ Session restoration timeout after 5 seconds"
+                        );
                         // Clear potentially corrupted auth tokens
                         clearSupabaseAuth();
                         setLoading(false);
@@ -68,15 +70,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         setUser(null);
                         // Force reload to clear any stuck state
                         setTimeout(() => {
-                            window.location.href = "/auth?mode=login&reason=timeout";
+                            window.location.href =
+                                "/auth?mode=login&reason=timeout";
                         }, 100);
                     }
                 }, 5000);
 
-                console.log("🔐 AuthProvider: Calling supabase.auth.getSession()...");
-                const { data: { session }, error } = await supabase.auth.getSession();
+                console.log(
+                    "🔐 AuthProvider: Calling supabase.auth.getSession()..."
+                );
+                const {
+                    data: { session },
+                    error,
+                } = await supabase.auth.getSession();
 
-                console.log("🔐 AuthProvider: getSession() completed", { hasSession: !!session, hasError: !!error });
+                console.log("🔐 AuthProvider: getSession() completed", {
+                    hasSession: !!session,
+                    hasError: !!error,
+                });
 
                 // Clear timeout on success
                 clearTimeout(sessionTimeout);
@@ -103,20 +114,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setSession(session);
                 setUser(session?.user ?? null);
 
-                console.log("🔐 AuthProvider: Session set", { hasUser: !!session?.user });
+                console.log("🔐 AuthProvider: Session set", {
+                    hasUser: !!session?.user,
+                });
 
                 // Fetch profile with 3-second timeout (non-critical, reduced from 5s)
                 if (session?.user) {
                     const profilePromise = fetchProfile(session.user.id);
-                    const profileTimeout = new Promise<null>(resolve =>
+                    const profileTimeout = new Promise<null>((resolve) =>
                         setTimeout(() => {
                             console.warn("⚠️ Profile fetch timeout");
                             resolve(null);
                         }, 3000)
                     );
-                    const profileData = await Promise.race([profilePromise, profileTimeout]);
+                    const profileData = await Promise.race([
+                        profilePromise,
+                        profileTimeout,
+                    ]);
                     setProfile(profileData);
-                    console.log("🔐 AuthProvider: Profile set", { hasProfile: !!profileData });
+                    console.log("🔐 AuthProvider: Profile set", {
+                        hasProfile: !!profileData,
+                    });
                 }
 
                 setLoading(false);
