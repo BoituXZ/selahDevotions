@@ -4,6 +4,7 @@ import { Mail, Lock, User } from "lucide-react";
 import { supabase } from "../auth/supabase";
 import { useAuth } from "../AuthProvider";
 import { toast } from "sonner";
+import VerificationPending from "../components/VerificationPending";
 
 export default function Auth() {
     const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function Auth() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [justRegistered, setJustRegistered] = useState<string | null>(null);
 
     // If user is already authenticated, redirect to dashboard
     if (authLoading) return null;
@@ -25,6 +27,11 @@ export default function Auth() {
     const switchMode = (newMode: "login" | "register") => {
         setMode(newMode);
         navigate(`/auth?mode=${newMode}`, { replace: true });
+    };
+
+    const handleBackToLogin = () => {
+        setJustRegistered(null);
+        setMode("login");
     };
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -69,13 +76,22 @@ export default function Auth() {
         if (error) {
             toast.error(error.message);
         } else {
-            toast.success("Account created! Please check your email.");
-            setMode("login");
+            setJustRegistered(email);
         }
         setLoading(false);
     };
 
     const handleSubmit = mode === "login" ? handleLogin : handleRegister;
+
+    // Show verification pending screen if user just registered
+    if (justRegistered) {
+        return (
+            <VerificationPending
+                email={justRegistered}
+                onBackToLogin={handleBackToLogin}
+            />
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50 flex items-center justify-center p-4">
