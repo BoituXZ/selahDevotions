@@ -91,9 +91,13 @@ devotions.post(
 
             return c.json({ success: true, devotion: decryptedDevotion });
         } catch (encryptionError) {
-            logger.error("Encryption/decryption failed", encryptionError as Error, {
-                userId: user.id,
-            });
+            logger.error(
+                "Encryption/decryption failed",
+                encryptionError as Error,
+                {
+                    userId: user.id,
+                }
+            );
             return c.json({ error: "Failed to secure devotion" }, 500);
         }
     }
@@ -196,7 +200,10 @@ devotions.get("/", async (c) => {
             if (devotion.is_encrypted && devotion.encrypted_content) {
                 return {
                     ...devotion,
-                    content: decryptContent(devotion.encrypted_content, userKey),
+                    content: decryptContent(
+                        devotion.encrypted_content,
+                        userKey
+                    ),
                     encrypted_content: undefined,
                 };
             }
@@ -210,6 +217,104 @@ devotions.get("/", async (c) => {
         });
         return c.json({ error: "Failed to retrieve devotions" }, 500);
     }
+});
+
+devotions.put("/:id", zValidator("json", createDevotionSchema), async (c) => {
+    const user = c.get("user");
+    const id = c.req.param("id");
+    const body = c.req.valid("json");
+
+    // Sanitize the input
+    const cleanContent = sanitizeHtml(body.content, {
+        allowedTags: ["b", "i", "em", "strong", "p", "br"],
+        allowedAttributes: {},
+    });
+
+    const cleanScripture = body.scripture_ref
+        ? sanitizeHtml(body.scripture_ref, { allowedTags: [] })
+        : null;
+
+    const cleanMood = body.mood
+        ? sanitizeHtml(body.mood, { allowedTags: [] })
+        : null;
+
+    try {
+        // Get user's encryption key
+        const userKey = await getUserEncryptionKey(user.id);
+
+        // Encrypt the updated content
+        const encryptedContent = encryptContent(cleanContent, userKey);
+
+        // Update the devotion
+        const { data, error } = await supabase
+            .from("devotions")
+            .update({
+                content: "", // Keep empty for backward compatibility
+                encrypted_content: encryptedContent,
+                is_encrypted: true,
+                encryption_version: 1,
+                scripture_ref: cleanScripture,
+                mood: cleanMood,
+            })
+            .eq("id", id)
+            .eq("user_id", user.id) // Security: Ensure user owns the devotion
+            .select()
+            .single();
+
+        if (error) {
+            logger.error("Failed to update devotion", error, {
+                userId: user.id,
+                devotionId: id,
+            });
+            return c.json({ error: error.message }, 500);
+        }
+
+        logger.info("Devotion updated successfully", {
+            userId: user.id,
+            devotionId: id,
+        });
+
+        // Decrypt before returning to client
+        const decryptedDevotion = {
+            ...data,
+            content: decryptContent(data.encrypted_content, userKey),
+            encrypted_content: undefined,
+        };
+
+        return c.json({ success: true, devotion: decryptedDevotion });
+    } catch (encryptionError) {
+        logger.error(
+            "Encryption/decryption failed during update",
+            encryptionError as Error,
+            {
+                userId: user.id,
+                devotionId: id,
+            }
+        );
+        return c.json({ error: "Failed to update devotion" }, 500);
+    }
+});
+
+devotions.delete("/:id", async (c) => {
+    const user = c.get("user");
+    const id = c.req.param("id");
+
+    const { error } = await supabase
+        .from("devotions")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id); // Security: Ensure user owns the devotion
+
+    if (error) {
+        logger.error("Failed to delete devotion", error, {
+            userId: user.id,
+            devotionId: id,
+        });
+        return c.json({ error: error.message }, 500);
+    }
+
+    logger.info("Devotion deleted", { userId: user.id, devotionId: id });
+    return c.json({ success: true });
 });
 
 export default devotions;

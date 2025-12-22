@@ -1,7 +1,7 @@
 import { supabase } from "./auth/supabase";
 import { toast } from "sonner";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 // Debouncing flag for 429 errors to prevent spam
 let rateToastShown = false;
@@ -88,4 +88,10 @@ export const api = {
             method: "POST",
             body: JSON.stringify(body),
         }),
+    put: <T>(endpoint: string, body: any) =>
+        request<T>(endpoint, {
+            method: "PUT",
+            body: JSON.stringify(body),
+        }),
+    delete: <T>(endpoint: string) => request<T>(endpoint, { method: "DELETE" }),
 };

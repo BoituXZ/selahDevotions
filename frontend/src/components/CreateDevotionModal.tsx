@@ -1,22 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Save, BookOpen, Smile } from "lucide-react";
 import { api } from "../api";
+import type { Devotion } from "../types/types";
 
 interface CreateDevotionModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void; // To refresh the list after saving
+    devotion?: Devotion; // Optional: if provided, we're editing
 }
 
 export default function CreateDevotionModal({
     isOpen,
     onClose,
     onSuccess,
+    devotion,
 }: CreateDevotionModalProps) {
     const [loading, setLoading] = useState(false);
     const [content, setContent] = useState("");
     const [scripture, setScripture] = useState("");
     const [mood, setMood] = useState("");
+
+    const isEditMode = !!devotion;
+
+    // Populate form when editing
+    useEffect(() => {
+        if (devotion) {
+            setContent(devotion.content || "");
+            setScripture(devotion.scripture_ref || "");
+            setMood(devotion.mood || "");
+        } else {
+            // Reset form when creating new
+            setContent("");
+            setScripture("");
+            setMood("");
+        }
+    }, [devotion]);
 
     if (!isOpen) return null;
 
@@ -25,11 +44,22 @@ export default function CreateDevotionModal({
         setLoading(true);
 
         try {
-            await api.post("/api/devotions", {
-                content,
-                scripture_ref: scripture,
-                mood,
-            });
+            if (isEditMode && devotion) {
+                // Update existing devotion
+                await api.put(`/api/devotions/${devotion.id}`, {
+                    content,
+                    scripture_ref: scripture,
+                    mood,
+                });
+            } else {
+                // Create new devotion
+                await api.post("/api/devotions", {
+                    content,
+                    scripture_ref: scripture,
+                    mood,
+                });
+            }
+
             // Clear form
             setContent("");
             setScripture("");
@@ -38,7 +68,11 @@ export default function CreateDevotionModal({
             onSuccess(); // Refresh parent
             onClose(); // Close modal
         } catch (err) {
-            alert("Failed to save devotion. Please try again.");
+            alert(
+                `Failed to ${
+                    isEditMode ? "update" : "save"
+                } devotion. Please try again.`
+            );
             console.error(err);
         } finally {
             setLoading(false);
@@ -53,7 +87,7 @@ export default function CreateDevotionModal({
                 {/* Header */}
                 <div className="flex justify-between items-center p-6 border-b border-stone-100">
                     <h2 className="text-xl font-serif text-stone-800">
-                        New Entry
+                        {isEditMode ? "Edit Entry" : "New Entry"}
                     </h2>
                     <button
                         onClick={onClose}
@@ -127,11 +161,17 @@ export default function CreateDevotionModal({
                         className="flex items-center gap-2 px-6 py-2.5 bg-stone-900 text-white font-medium rounded-lg hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-stone-900/10"
                     >
                         {loading ? (
-                            "Saving..."
+                            isEditMode ? (
+                                "Updating..."
+                            ) : (
+                                "Saving..."
+                            )
                         ) : (
                             <>
                                 <Save size={18} />
-                                <span>Save Entry</span>
+                                <span>
+                                    {isEditMode ? "Update Entry" : "Save Entry"}
+                                </span>
                             </>
                         )}
                     </button>
