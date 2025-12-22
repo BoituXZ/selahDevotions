@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { type Session, type User } from "@supabase/supabase-js";
-import { supabase, clearSupabaseAuth } from "../src/auth/supabase";
+import { supabase } from "../src/auth/supabase";
 import type { Profile } from "./types/types";
 
 interface AuthContextType {
@@ -70,10 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 } else {
                     setSession(session);
                     setUser(session?.user ?? null);
-                    
+
                     if (session?.user) {
                         // Fetch profile in background, don't block
-                        fetchProfile(session.user.id).then(profileData => {
+                        fetchProfile(session.user.id).then((profileData) => {
                             if (!isCancelled) setProfile(profileData);
                         });
                     }
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log(`🔐 Auth event: ${event}`);
-            
+
             if (isCancelled) return;
 
             setSession(session);
@@ -105,12 +105,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (event === "SIGNED_OUT") {
                 setProfile(null);
                 // Optional: Clear data if needed, but usually handled by redirection
-            } else if (session?.user && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
+            } else if (
+                session?.user &&
+                (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")
+            ) {
                 // Refresh profile on sign in
                 const profileData = await fetchProfile(session.user.id);
                 if (!isCancelled) setProfile(profileData);
             }
-            
+
             setLoading(false);
         });
 
