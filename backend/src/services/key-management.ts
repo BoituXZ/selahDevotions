@@ -45,6 +45,28 @@ export async function getUserEncryptionKey(userId: string): Promise<string> {
         });
 
     if (insertError) {
+        // Handle race condition: if key was created by another request concurrently
+        if (insertError.code === "23505") {
+            logger.info("Race condition detected: Key created by another process", {
+                userId,
+            });
+            // Retry fetch
+            const { data: retryData, error: retryError } = await supabase
+                .from("user_encryption_keys")
+                .select("encrypted_key")
+                .eq("user_id", userId)
+                .single();
+
+            if (retryData) {
+                logger.debug("Retrieved existing encryption key after race condition", {
+                    userId,
+                });
+                return retryData.encrypted_key;
+            }
+            
+            logger.error("Failed to fetch user encryption key after race condition", retryError, { userId });
+        }
+
         logger.error("Failed to store user encryption key", insertError, {
             userId,
         });
