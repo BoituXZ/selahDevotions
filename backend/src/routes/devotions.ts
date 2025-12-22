@@ -2,14 +2,16 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import sanitizeHtml from "sanitize-html";
-import { supabase } from "../lib/supabase";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../lib/logger";
 import { encryptContent, decryptContent } from "../services/encryption";
 import { getUserEncryptionKey } from "../services/key-management";
+
 type Variables = {
     user: {
         id: string;
     };
+    supabase: SupabaseClient;
 };
 
 const devotions = new Hono<{ Variables: Variables }>();
@@ -30,6 +32,7 @@ devotions.post(
 
     async (c) => {
         const user = c.get("user");
+        const supabase = c.get("supabase");
         const body = c.req.valid("json"); // Typed automatically by Zod!
 
         // 3. Sanitize the Input (Defense against XSS)
@@ -105,6 +108,7 @@ devotions.post(
 
 devotions.get("/:id", async (c) => {
     const user = c.get("user");
+    const supabase = c.get("supabase");
     const id = c.req.param("id");
 
     const { data, error } = await supabase
@@ -158,6 +162,7 @@ devotions.get("/:id", async (c) => {
 // GET list - decrypt all encrypted devotions
 devotions.get("/", async (c) => {
     const user = c.get("user");
+    const supabase = c.get("supabase");
 
     const { data, error } = await supabase
         .from("devotions")
@@ -221,6 +226,7 @@ devotions.get("/", async (c) => {
 
 devotions.put("/:id", zValidator("json", createDevotionSchema), async (c) => {
     const user = c.get("user");
+    const supabase = c.get("supabase");
     const id = c.req.param("id");
     const body = c.req.valid("json");
 
@@ -297,6 +303,7 @@ devotions.put("/:id", zValidator("json", createDevotionSchema), async (c) => {
 
 devotions.delete("/:id", async (c) => {
     const user = c.get("user");
+    const supabase = c.get("supabase");
     const id = c.req.param("id");
 
     const { error } = await supabase

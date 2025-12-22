@@ -1,11 +1,12 @@
 import { Hono } from "hono";
-import { supabase } from "../lib/supabase";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../lib/logger";
 
 type Variables = {
     user: {
         id: string;
     };
+    supabase: SupabaseClient;
 };
 
 const preferences = new Hono<{ Variables: Variables }>();
@@ -13,6 +14,7 @@ const preferences = new Hono<{ Variables: Variables }>();
 // GET /api/preferences
 preferences.get("/", async (c) => {
     const user = c.get("user");
+    const supabase = c.get("supabase");
 
     const { data, error } = await supabase
         .from("user_preferences")
@@ -39,6 +41,7 @@ preferences.get("/", async (c) => {
 // POST /api/preferences/mark-encryption-notice-seen
 preferences.post("/mark-encryption-notice-seen", async (c) => {
     const user = c.get("user");
+    const supabase = c.get("supabase");
 
     const { error } = await supabase
         .from("user_preferences")

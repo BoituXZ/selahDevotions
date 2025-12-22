@@ -13,6 +13,7 @@ const envSchema = z.object({
     // App Secrets (Required)
     SUPABASE_URL: z.string().min(1, "Supabase URL is required"),
     SUPABASE_KEY: z.string().min(1, "Supabase Key is required"),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "Supabase Service Role Key is required"),
 
     // Google Cloud & AI (Required for Vertex AI)
     GOOGLE_CLOUD_PROJECT: z

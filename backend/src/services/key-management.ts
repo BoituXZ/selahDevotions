@@ -1,4 +1,4 @@
-import { supabase } from "../lib/supabase";
+import { supabaseAdmin } from "../lib/supabase";
 import { logger } from "../lib/logger";
 import { generateUserKey } from "./encryption";
 
@@ -14,7 +14,7 @@ interface UserEncryptionKey {
  */
 export async function getUserEncryptionKey(userId: string): Promise<string> {
     // Try to fetch existing key
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
         .from("user_encryption_keys")
         .select("encrypted_key")
         .eq("user_id", userId)
@@ -36,7 +36,7 @@ export async function getUserEncryptionKey(userId: string): Promise<string> {
     logger.info("Generating new encryption key for user", { userId });
     const newEncryptedKey = generateUserKey();
 
-    const { error: insertError } = await supabase
+    const { error: insertError } = await supabaseAdmin
         .from("user_encryption_keys")
         .insert({
             user_id: userId,
@@ -51,7 +51,7 @@ export async function getUserEncryptionKey(userId: string): Promise<string> {
                 userId,
             });
             // Retry fetch
-            const { data: retryData, error: retryError } = await supabase
+            const { data: retryData, error: retryError } = await supabaseAdmin
                 .from("user_encryption_keys")
                 .select("encrypted_key")
                 .eq("user_id", userId)

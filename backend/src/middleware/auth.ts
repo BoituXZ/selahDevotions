@@ -1,5 +1,7 @@
 import { createMiddleware } from "hono/factory";
+import { createClient } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { env } from "../lib/env";
 import { logger } from "../lib/logger";
 
 export const authMiddleware = createMiddleware(async (c, next) => {
@@ -36,8 +38,19 @@ export const authMiddleware = createMiddleware(async (c, next) => {
         email: user.email,
     });
 
-    // Attach user to the context so we can use it in routes
+    // Create a scoped Supabase client for this request
+    // This passes the user's JWT to Postgres, enabling RLS
+    const scopedSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
+        global: {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        },
+    });
+
+    // Attach user and scoped client to the context
     c.set("user", user);
+    c.set("supabase", scopedSupabase);
 
     await next();
 });

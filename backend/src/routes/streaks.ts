@@ -1,11 +1,18 @@
 import { Hono } from "hono";
-import { supabase } from "../lib/supabase";
-import type { Variables } from "../index";
+import { SupabaseClient } from "@supabase/supabase-js";
+
+type Variables = {
+    user: {
+        id: string;
+    };
+    supabase: SupabaseClient;
+};
 
 const streaks = new Hono<{ Variables: Variables }>();
 
 streaks.get("/", async (c) => {
     const user = c.get("user");
+    const supabase = c.get("supabase");
 
     const { data, error } = await supabase
         .from("streaks")
