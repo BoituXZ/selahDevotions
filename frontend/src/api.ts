@@ -1,4 +1,4 @@
-import { supabase } from "./auth/supabase";
+import { supabase, clearSupabaseAuth } from "./auth/supabase";
 import { toast } from "sonner";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
@@ -44,8 +44,10 @@ async function request<T>(
             toast.error("Your session has expired. Please log in again.", {
                 duration: 3000,
             });
-            // Sign out and redirect to login
-            await supabase.auth.signOut();
+            
+            // Nuke the session from orbit to prevent loops
+            clearSupabaseAuth();
+            
             setTimeout(() => {
                 window.location.href = "/auth?mode=login";
             }, 500);
