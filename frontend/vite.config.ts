@@ -85,14 +85,9 @@ export default defineConfig({
                             },
                         },
                     },
-                    // Supabase Auth - Network Only (Never cache auth)
+                    // Supabase Storage/Rest - Network First (Exclude Auth)
                     {
-                        urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/v1\/.*$/i,
-                        handler: "NetworkOnly",
-                    },
-                    // Supabase Storage/Rest - Network First
-                    {
-                        urlPattern: /^https:\/\/.*\.supabase\.co\/.*$/i,
+                        urlPattern: /^https:\/\/.*\.supabase\.co\/(?!auth\/v1\/).*$/i,
                         handler: "NetworkFirst",
                         options: {
                             cacheName: "supabase-api-cache",

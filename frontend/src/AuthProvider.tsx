@@ -52,19 +52,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const initAuth = async () => {
             try {
-                // Check active session
+                // Create a promise that rejects after 5 seconds
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("Auth timeout")), 5000)
+                );
+
+                // Check active session with race condition
                 const {
                     data: { session },
                     error,
-                } = await supabase.auth.getSession();
+                } = await Promise.race([
+                    supabase.auth.getSession(),
+                    timeoutPromise.then(() => { throw new Error("Auth timeout"); })
+                ]) as any;
 
                 if (isCancelled) return;
 
                 if (error) {
                     console.error("❌ Session error:", error);
-                    // Don't nuking tokens immediately on error allows for retry if it's network related
-                    // but if we have an explicit error, we might want to redirect.
-                    // For now, let's just set no session and let the UI handle it (ProtectedLayout will redirect).
                     setSession(null);
                     setUser(null);
                 } else {
@@ -79,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     }
                 }
             } catch (err) {
-                console.error("❌ Auth initialization error:", err);
+                console.error("❌ Auth initialization error/timeout:", err);
                 if (!isCancelled) {
                     setSession(null);
                     setUser(null);

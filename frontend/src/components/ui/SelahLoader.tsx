@@ -6,7 +6,7 @@ interface SelahLoaderProps {
     onTimeout?: () => void;
 }
 
-export default function SelahLoader({ timeout = 8000, onTimeout }: SelahLoaderProps) {
+export default function SelahLoader({ timeout = 15000, onTimeout }: SelahLoaderProps) {
     const [showSlowWarning, setShowSlowWarning] = useState(false);
     const [hasTimedOut, setHasTimedOut] = useState(false);
 
