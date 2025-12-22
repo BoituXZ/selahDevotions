@@ -35,7 +35,6 @@ initGlobalErrorHandlers();
 
 // Render function
 const renderApp = () => {
-    console.log("🚀 Rendering Selah app...");
     ReactDOM.createRoot(document.getElementById("root")!).render(
         <React.StrictMode>
             <ErrorBoundary>

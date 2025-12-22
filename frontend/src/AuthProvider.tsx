@@ -31,8 +31,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch profile data from the profiles table
     const fetchProfile = async (user: User) => {
         try {
-            console.log("🔍 [Profile] Starting fetch for user:", user.id);
-
             // Add timeout to profile fetch to prevent hanging
             const profileTimeout = new Promise<null>((_, reject) =>
                 setTimeout(() => reject(new Error("Profile fetch timeout")), 8000)
@@ -47,20 +45,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const result = await Promise.race([profileFetch, profileTimeout]);
 
             if (result === null) {
-                console.error("❌ [Profile] Fetch timed out");
+                console.error("Profile fetch timed out");
                 return null;
             }
 
             const { data, error } = result as any;
 
-            console.log("🔍 [Profile] Fetch response:", {
-                hasData: !!data,
-                hasError: !!error,
-                fullName: data?.full_name,
-            });
-
             if (error) {
-                console.error("❌ [Profile] Error fetching profile:", error);
+                console.error("Error fetching profile:", error);
                 return null;
             }
 
@@ -69,7 +61,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Sync full_name from auth metadata if missing in profile
             if (!profileData.full_name && user.user_metadata?.full_name) {
                 const fullName = user.user_metadata.full_name;
-                console.log("🔄 [Profile] Syncing full_name from auth metadata:", fullName);
 
                 const { error: updateError } = await supabase
                     .from("profiles")
@@ -78,21 +69,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 if (!updateError) {
                     profileData = { ...profileData, full_name: fullName };
-                    console.log("✅ [Profile] Successfully synced full_name");
                 }
             }
 
-            console.log("✅ [Profile] Fetch complete:", profileData);
             return profileData;
         } catch (err) {
-            console.error("❌ [Profile] Failed to fetch profile:", err);
+            console.error("Failed to fetch profile:", err);
             return null;
         }
     };
 
     useEffect(() => {
         let isCancelled = false;
-        console.log("🔐 [Auth] Initializing auth...");
 
         const initAuth = async () => {
             try {
@@ -113,32 +101,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (isCancelled) return;
 
                 if (error) {
-                    console.error("❌ [Auth] Session error:", error);
+                    console.error("Session error:", error);
                     setSession(null);
                     setUser(null);
                     setProfile(null);
                 } else {
-                    console.log("✅ [Auth] Session retrieved:", !!session);
                     setSession(session);
                     setUser(session?.user ?? null);
 
                     if (session?.user) {
-                        // CRITICAL: Set profileLoading BEFORE starting fetch
+                        // Set profileLoading BEFORE starting fetch
                         setProfileLoading(true);
-                        console.log("🔄 [Profile] Loading state set to true");
 
-                        // Fetch profile and WAIT for it to complete
-                        const profileData = await fetchProfile(session.user);
-
-                        if (!isCancelled) {
-                            setProfile(profileData);
-                            setProfileLoading(false);
-                            console.log("✅ [Profile] Loading complete, state updated");
-                        }
+                        // Fetch profile in background (non-blocking for faster app load)
+                        fetchProfile(session.user).then((profileData) => {
+                            if (!isCancelled) {
+                                setProfile(profileData);
+                                setProfileLoading(false);
+                            }
+                        }).catch((err) => {
+                            console.error("Profile fetch failed:", err);
+                            if (!isCancelled) {
+                                setProfileLoading(false);
+                            }
+                        });
                     }
                 }
             } catch (err) {
-                console.error("❌ [Auth] Initialization error/timeout:", err);
+                console.error("Auth initialization error:", err);
                 if (!isCancelled) {
                     setSession(null);
                     setUser(null);
@@ -146,10 +136,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setProfileLoading(false);
                 }
             } finally {
-                // Only set auth loading to false AFTER everything completes
                 if (!isCancelled) {
                     setLoading(false);
-                    console.log("✅ [Auth] Initialization complete");
                 }
             }
         };
@@ -160,8 +148,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log(`🔐 [Auth] Auth event: ${event}`);
-
             if (isCancelled) return;
 
             setSession(session);
@@ -176,16 +162,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ) {
                 // Set profileLoading BEFORE fetching
                 setProfileLoading(true);
-                console.log("🔄 [Profile] Auth change - loading profile");
 
-                // Refresh profile on sign in
-                const profileData = await fetchProfile(session.user);
-
-                if (!isCancelled) {
-                    setProfile(profileData);
-                    setProfileLoading(false);
-                    console.log("✅ [Profile] Auth change - profile updated");
-                }
+                // Refresh profile in background (non-blocking)
+                fetchProfile(session.user).then((profileData) => {
+                    if (!isCancelled) {
+                        setProfile(profileData);
+                        setProfileLoading(false);
+                    }
+                }).catch((err) => {
+                    console.error("Profile fetch on auth change failed:", err);
+                    if (!isCancelled) {
+                        setProfileLoading(false);
+                    }
+                });
             }
 
             setLoading(false);

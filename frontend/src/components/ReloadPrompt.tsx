@@ -9,12 +9,8 @@ export function ReloadPrompt() {
         needRefresh: [needRefresh, setNeedRefresh],
         updateServiceWorker,
     } = useRegisterSW({
-        onRegistered(r: ServiceWorkerRegistration | undefined) {
-            console.log("SW Registered: " + r);
-        },
-        onRegisterError(error: unknown) {
-            console.log("SW registration error", error);
-        },
+        onRegistered(r: ServiceWorkerRegistration | undefined) {},
+        onRegisterError(error: unknown) {},
     });
 
     const [dismissalCount, setDismissalCount] = useState(() => {
@@ -28,7 +24,6 @@ export function ReloadPrompt() {
 
         // If max dismissals reached, force reload immediately
         if (dismissalCount >= MAX_DISMISSALS) {
-            console.log("Max dismissals reached, forcing reload...");
             // Short delay to let the UI render the message
             const timer = setTimeout(() => {
                 updateServiceWorker(true);
@@ -50,8 +45,6 @@ export function ReloadPrompt() {
 
         setOfflineReady(false);
         setNeedRefresh(false);
-
-        console.log(`Update dismissed (${newCount}/${MAX_DISMISSALS})`);
     };
 
     const handleCloseOfflineReady = () => {
@@ -110,10 +103,12 @@ export function ReloadPrompt() {
                                 </span>
                             ) : (
                                 <>
-                                    Click "Update Now" to get the latest features.
+                                    Click "Update Now" to get the latest
+                                    features.
                                     {dismissalCount > 0 && (
                                         <span className="text-amber-600 font-medium ml-1">
-                                            ({MAX_DISMISSALS - dismissalCount} dismissals remaining)
+                                            ({MAX_DISMISSALS - dismissalCount}{" "}
+                                            dismissals remaining)
                                         </span>
                                     )}
                                 </>

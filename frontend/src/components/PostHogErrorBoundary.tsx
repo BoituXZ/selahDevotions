@@ -40,7 +40,6 @@ export class PostHogErrorBoundary extends Component<Props, State> {
 
         // If PostHog failed, render children without analytics
         if (this.state.hasError || !apiKey) {
-            console.log("📊 Running without PostHog analytics");
             return <>{children}</>;
         }
 

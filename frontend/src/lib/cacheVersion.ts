@@ -20,12 +20,6 @@ export const isVersionMismatch = (): boolean => {
  * Called when version mismatch is detected
  */
 export const clearStaleData = async (): Promise<void> => {
-    console.log(
-        `Clearing stale data. Old version: ${localStorage.getItem(
-            "app_version"
-        )}, New version: ${APP_VERSION}`
-    );
-
     // Preserve important localStorage keys
     const preserve = ["hasSeenWelcome", "theme", "preferences"];
     const toRestore: Record<string, string> = {};
@@ -42,7 +36,6 @@ export const clearStaleData = async (): Promise<void> => {
         if (key && key.startsWith("sb-") && key.includes("-auth-token")) {
             const val = localStorage.getItem(key);
             if (val) {
-                console.log(`Preserving auth token: ${key}`);
                 toRestore[key] = val;
             }
         }
@@ -60,14 +53,12 @@ export const clearStaleData = async (): Promise<void> => {
     try {
         const cacheNames = await caches.keys();
         await Promise.all(cacheNames.map((name) => caches.delete(name)));
-        console.log(`Cleared ${cacheNames.length} cache(s):`, cacheNames);
     } catch (err) {
         console.error("Failed to clear caches:", err);
     }
 
     // Update stored version
     localStorage.setItem("app_version", APP_VERSION);
-    console.log(`Updated app version to: ${APP_VERSION}`);
 };
 
 /**
@@ -79,9 +70,7 @@ export const initVersionCheck = async (): Promise<void> => {
 
     if (!storedVersion) {
         // First time user - just set version
-        console.log(
-            `First launch or no version stored. Setting version: ${APP_VERSION}`
-        );
+
         localStorage.setItem("app_version", APP_VERSION);
         return;
     }
@@ -100,7 +89,6 @@ export const initVersionCheck = async (): Promise<void> => {
             });
         }
     } else {
-        console.log(`App version verified: ${APP_VERSION}`);
     }
 };
 
