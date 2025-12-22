@@ -2,7 +2,6 @@ import { useRegisterSW } from "virtual:pwa-register/react";
 import { useEffect, useState } from "react";
 
 const MAX_DISMISSALS = 3;
-const AUTO_RELOAD_DELAY = 10; // seconds
 
 export function ReloadPrompt() {
     const {
@@ -18,36 +17,24 @@ export function ReloadPrompt() {
         },
     });
 
-    const [countdown, setCountdown] = useState(AUTO_RELOAD_DELAY);
     const [dismissalCount, setDismissalCount] = useState(() => {
         const stored = localStorage.getItem("sw_dismissal_count");
         return stored ? parseInt(stored, 10) : 0;
     });
 
-    // Auto-reload countdown when update is needed
+    // Auto-reload ONLY if max dismissals reached
     useEffect(() => {
         if (!needRefresh) return;
 
         // If max dismissals reached, force reload immediately
         if (dismissalCount >= MAX_DISMISSALS) {
             console.log("Max dismissals reached, forcing reload...");
-            updateServiceWorker(true);
-            return;
+            // Short delay to let the UI render the message
+            const timer = setTimeout(() => {
+                updateServiceWorker(true);
+            }, 3000);
+            return () => clearTimeout(timer);
         }
-
-        // Start countdown
-        const timer = setInterval(() => {
-            setCountdown((prev) => {
-                if (prev <= 1) {
-                    console.log("Auto-reload countdown reached zero");
-                    updateServiceWorker(true);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(timer);
     }, [needRefresh, dismissalCount, updateServiceWorker]);
 
     const handleUpdateNow = () => {
@@ -131,9 +118,6 @@ export function ReloadPrompt() {
                                     )}
                                 </>
                             )}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-2">
-                            Auto-updating in {countdown} seconds...
                         </p>
                     </div>
                     <div className="flex gap-2">

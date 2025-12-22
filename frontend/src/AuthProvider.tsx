@@ -47,145 +47,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     useEffect(() => {
-        let sessionTimeout: number;
         let isCancelled = false;
-
         console.log("🔐 AuthProvider: Initializing auth...");
 
-        // 1. Check active session on load with timeout
         const initAuth = async () => {
             try {
-                console.log("🔐 AuthProvider: Starting session restoration...");
-
-                // Set 5-second timeout for session restoration (reduced from 10s)
-                sessionTimeout = setTimeout(() => {
-                    if (!isCancelled) {
-                        console.error(
-                            "❌ Session restoration timeout after 5 seconds"
-                        );
-                        // Clear potentially corrupted auth tokens
-                        clearSupabaseAuth();
-                        setLoading(false);
-                        setSession(null);
-                        setUser(null);
-                        // Force reload to clear any stuck state
-                        setTimeout(() => {
-                            window.location.href =
-                                "/auth?mode=login&reason=timeout";
-                        }, 100);
-                    }
-                }, 5000);
-
-                console.log(
-                    "🔐 AuthProvider: Calling supabase.auth.getSession()..."
-                );
+                // Check active session
                 const {
                     data: { session },
                     error,
                 } = await supabase.auth.getSession();
 
-                console.log("🔐 AuthProvider: getSession() completed", {
-                    hasSession: !!session,
-                    hasError: !!error,
-                });
+                if (isCancelled) return;
 
-                // Clear timeout on success
-                clearTimeout(sessionTimeout);
-
-                if (isCancelled) {
-                    console.log("🔐 AuthProvider: Cancelled, returning");
-                    return;
-                }
-
-                // If there's an error getting the session, redirect to login
                 if (error) {
                     console.error("❌ Session error:", error);
-                    // Clear potentially corrupted auth tokens
-                    clearSupabaseAuth();
-                    setLoading(false);
+                    // Don't nuking tokens immediately on error allows for retry if it's network related
+                    // but if we have an explicit error, we might want to redirect.
+                    // For now, let's just set no session and let the UI handle it (ProtectedLayout will redirect).
                     setSession(null);
                     setUser(null);
-                    setTimeout(() => {
-                        window.location.href = "/auth?mode=login&reason=error";
-                    }, 100);
-                    return;
+                } else {
+                    setSession(session);
+                    setUser(session?.user ?? null);
+                    
+                    if (session?.user) {
+                        // Fetch profile in background, don't block
+                        fetchProfile(session.user.id).then(profileData => {
+                            if (!isCancelled) setProfile(profileData);
+                        });
+                    }
                 }
-
-                setSession(session);
-                setUser(session?.user ?? null);
-
-                console.log("🔐 AuthProvider: Session set", {
-                    hasUser: !!session?.user,
-                });
-
-                // Fetch profile with 3-second timeout (non-critical, reduced from 5s)
-                if (session?.user) {
-                    const profilePromise = fetchProfile(session.user.id);
-                    const profileTimeout = new Promise<null>((resolve) =>
-                        setTimeout(() => {
-                            console.warn("⚠️ Profile fetch timeout");
-                            resolve(null);
-                        }, 3000)
-                    );
-                    const profileData = await Promise.race([
-                        profilePromise,
-                        profileTimeout,
-                    ]);
-                    setProfile(profileData);
-                    console.log("🔐 AuthProvider: Profile set", {
-                        hasProfile: !!profileData,
-                    });
-                }
-
-                setLoading(false);
-                console.log("✅ AuthProvider: Initialization complete");
             } catch (err) {
-                clearTimeout(sessionTimeout);
                 console.error("❌ Auth initialization error:", err);
-                // Clear potentially corrupted auth tokens
-                clearSupabaseAuth();
-                setLoading(false);
-                setSession(null);
-                setUser(null);
-                setTimeout(() => {
-                    window.location.href = "/auth?mode=login&reason=crash";
-                }, 100);
+                if (!isCancelled) {
+                    setSession(null);
+                    setUser(null);
+                }
+            } finally {
+                if (!isCancelled) setLoading(false);
             }
         };
 
         initAuth();
 
-        // 2. Listen for changes (login/logout)
+        // Listen for auth changes
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log(`🔐 Auth event: ${event}`);
+            
+            if (isCancelled) return;
+
             setSession(session);
             setUser(session?.user ?? null);
 
-            // Handle token expiration or sign out
-            if (event === "TOKEN_REFRESHED") {
-                console.log("Token refreshed successfully");
-            }
-
             if (event === "SIGNED_OUT") {
                 setProfile(null);
-                // Redirect to login
-                window.location.href = "/auth?mode=login";
-            }
-
-            if (session?.user) {
+                // Optional: Clear data if needed, but usually handled by redirection
+            } else if (session?.user && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
+                // Refresh profile on sign in
                 const profileData = await fetchProfile(session.user.id);
-                setProfile(profileData);
-            } else {
-                setProfile(null);
+                if (!isCancelled) setProfile(profileData);
             }
-
+            
             setLoading(false);
         });
 
         return () => {
             isCancelled = true;
-            clearTimeout(sessionTimeout);
             subscription.unsubscribe();
         };
     }, []);

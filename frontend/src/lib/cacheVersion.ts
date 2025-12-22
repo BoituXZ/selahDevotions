@@ -26,23 +26,29 @@ export const clearStaleData = async (): Promise<void> => {
         )}, New version: ${APP_VERSION}`
     );
 
-    // Preserve important localStorage keys (NOT auth tokens - those should be refreshed)
+    // Preserve important localStorage keys
     const preserve = ["hasSeenWelcome", "theme", "preferences"];
     const toRestore: Record<string, string> = {};
 
+    // 1. Save keys we explicitly want to keep
     preserve.forEach((key) => {
         const val = localStorage.getItem(key);
         if (val) toRestore[key] = val;
     });
 
-    // Log Supabase auth tokens being cleared (for debugging)
+    // 2. Dynamic preservation: Save Supabase auth tokens
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith("sb-") && key.includes("-auth-token")) {
+            const val = localStorage.getItem(key);
+            if (val) {
+                console.log(`Preserving auth token: ${key}`);
+                toRestore[key] = val;
+            }
         }
     }
 
-    // Clear all localStorage (including Supabase auth tokens)
+    // Clear all localStorage
     localStorage.clear();
 
     // Restore preserved keys

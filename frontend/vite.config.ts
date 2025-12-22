@@ -85,15 +85,21 @@ export default defineConfig({
                             },
                         },
                     },
+                    // Supabase Auth - Network Only (Never cache auth)
+                    {
+                        urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/v1\/.*$/i,
+                        handler: "NetworkOnly",
+                    },
+                    // Supabase Storage/Rest - Network First
                     {
                         urlPattern: /^https:\/\/.*\.supabase\.co\/.*$/i,
                         handler: "NetworkFirst",
                         options: {
                             cacheName: "supabase-api-cache",
-                            networkTimeoutSeconds: 5, // Reduced from 10s
+                            networkTimeoutSeconds: 10,
                             expiration: {
                                 maxEntries: 50,
-                                maxAgeSeconds: 60, // Reduced from 5 minutes to 1 minute
+                                maxAgeSeconds: 60,
                             },
                             cacheableResponse: {
                                 statuses: [0, 200],
@@ -107,10 +113,10 @@ export default defineConfig({
                         handler: "NetworkFirst",
                         options: {
                             cacheName: "api-cache",
-                            networkTimeoutSeconds: 5, // Reduced from 10s
+                            networkTimeoutSeconds: 10,
                             expiration: {
                                 maxEntries: 50,
-                                maxAgeSeconds: 60, // Reduced from 5 minutes to 1 minute
+                                maxAgeSeconds: 60,
                             },
                         },
                     },
