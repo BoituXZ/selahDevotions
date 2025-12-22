@@ -20,13 +20,13 @@ preferences.get("/", async (c) => {
         .eq("user_id", user.id)
         .single();
 
-    if (error && error.code !== "PGRST116") {
-        logger.error("Failed to fetch preferences", error, { userId: user.id });
-        return c.json({ error: error.message }, 500);
-    }
-
-    // Return default preferences if not found
-    if (!data) {
+    // Return defaults for ANY error OR if no data
+    // This handles table not existing, network errors, etc.
+    if (error || !data) {
+        logger.debug("Preferences not found, returning defaults", {
+            userId: user.id,
+            errorCode: error?.code,
+        });
         return c.json({
             user_id: user.id,
             has_seen_encryption_notice: false,

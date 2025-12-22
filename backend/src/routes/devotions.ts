@@ -174,6 +174,19 @@ devotions.get("/", async (c) => {
         count: data?.length || 0,
     });
 
+    // Check if user has ANY encrypted devotions
+    const hasEncryptedDevotions = data.some(
+        (d) => d.is_encrypted === true && d.encrypted_content
+    );
+
+    // If no encrypted devotions, return as-is (handles old users with plain-text)
+    if (!hasEncryptedDevotions) {
+        logger.debug("No encrypted devotions, returning plain-text", {
+            userId: user.id,
+        });
+        return c.json(data);
+    }
+
     try {
         // Get user encryption key once for all decryptions
         const userKey = await getUserEncryptionKey(user.id);
