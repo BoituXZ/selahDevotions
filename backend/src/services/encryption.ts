@@ -14,14 +14,14 @@ let masterKey: Buffer | null = null;
 function getMasterKey(): Buffer {
     if (masterKey) return masterKey;
 
-    const masterKeyEnv = process.env.ENCRYPTION_MASTER_KEY;
+    const masterKeyEnv = env.ENCRYPTION_MASTER_KEY;
     if (!masterKeyEnv) {
         throw new Error("ENCRYPTION_MASTER_KEY not configured");
     }
 
     // Derive key from passphrase using scrypt
     const salt = Buffer.from(
-        process.env.ENCRYPTION_SALT || "selah-encryption-v1",
+        env.ENCRYPTION_SALT || "selah-encryption-v1",
         "utf-8"
     );
     masterKey = scryptSync(masterKeyEnv, salt, KEY_LENGTH);
