@@ -17,6 +17,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // 5. Import cache version checker
 import { initVersionCheck } from "./lib/cacheVersion";
+import { AuthProvider } from "./AuthProvider";
 
 // Configuration for PostHog
 const posthogOptions = {
@@ -43,10 +44,12 @@ const renderApp = () => {
                     apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
                     options={posthogOptions}
                 >
-                    <App />
+                    <AuthProvider>
+                        <App />
 
-                    {/* Vercel tracks the PERFORMANCE */}
-                    <Analytics />
+                        {/* Vercel tracks the PERFORMANCE */}
+                        <Analytics />
+                    </AuthProvider>
                 </PostHogErrorBoundary>
             </ErrorBoundary>
         </React.StrictMode>

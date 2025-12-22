@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./AuthProvider";
+import { useAuth } from "./AuthProvider";
 import { Toaster } from "sonner";
 import Layout from "./components/Layout";
 import SelahLoader from "./components/ui/SelahLoader";
@@ -17,63 +17,65 @@ const Profile = lazy(() => import("./pages/Profile"));
 const DevotionDetail = lazy(() => import("./pages/DevotionDetail"));
 
 function ProtectedLayout() {
-    const { user, loading } = useAuth();
-    if (loading) return <SelahLoader />;
-
+    const { user } = useAuth();
     // If user is logged in, show the App Layout with the Sidebar
     return user ? <Layout /> : <Navigate to="/auth" replace />;
 }
 
 export default function App() {
+    const { loading } = useAuth();
+
+    if (loading) {
+        return <SelahLoader />;
+    }
+
     return (
         <BrowserRouter>
-            <AuthProvider>
-                <Toaster
-                    position="top-center"
-                    richColors
-                    closeButton
-                    toastOptions={{
-                        style: {
-                            fontFamily: "var(--font-serif)",
-                        },
-                    }}
-                />
-                <ReloadPrompt />
+            <Toaster
+                position="top-center"
+                richColors
+                closeButton
+                toastOptions={{
+                    style: {
+                        fontFamily: "var(--font-serif)",
+                    },
+                }}
+            />
+            <ReloadPrompt />
 
-                <Suspense fallback={<SelahLoader />}>
-                    <ErrorBoundary>
-                        <Routes>
-                            {/* Public Routes */}
-                            <Route path="/" element={<Landing />} />
-                            <Route path="/auth" element={<Auth />} />
+            <Suspense fallback={<SelahLoader />}>
+                <ErrorBoundary>
+                    <Routes>
+                        {/* Public Routes */}
+                        <Route path="/" element={<Landing />} />
+                        <Route path="/auth" element={<Auth />} />
 
-                            {/* Legacy Redirects */}
+                        {/* Legacy Redirects */}
+                        <Route
+                            path="/login"
+                            element={<Navigate to="/auth?mode=login" replace />}
+                        />
+                        <Route
+                            path="/register"
+                            element={
+                                <Navigate to="/auth?mode=register" replace />
+                            }
+                        />
+
+                        {/* Protected Routes */}
+                        <Route element={<ProtectedLayout />}>
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/devotions" element={<Devotions />} />
                             <Route
-                                path="/login"
-                                element={<Navigate to="/auth?mode=login" replace />}
+                                path="/devotions/:id"
+                                element={<DevotionDetail />}
                             />
-                            <Route
-                                path="/register"
-                                element={
-                                    <Navigate to="/auth?mode=register" replace />
-                                }
-                            />
-
-                            {/* Protected Routes */}
-                            <Route element={<ProtectedLayout />}>
-                                <Route path="/dashboard" element={<Dashboard />} />
-                                <Route path="/devotions" element={<Devotions />} />
-                                <Route
-                                    path="/devotions/:id"
-                                    element={<DevotionDetail />}
-                                />
-                                <Route path="/chat" element={<Chat />} />
-                                <Route path="/profile" element={<Profile />} />
-                            </Route>
-                        </Routes>
-                    </ErrorBoundary>
-                </Suspense>
-            </AuthProvider>
+                            <Route path="/chat" element={<Chat />} />
+                            <Route path="/profile" element={<Profile />} />
+                        </Route>
+                    </Routes>
+                </ErrorBoundary>
+            </Suspense>
         </BrowserRouter>
     );
 }
