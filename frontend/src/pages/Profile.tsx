@@ -23,7 +23,7 @@ interface StreakData {
 }
 
 export default function Profile() {
-    const { user, profile } = useAuth();
+    const { user, profile, profileLoading } = useAuth();
     const navigate = useNavigate();
     const [devotionsCount, setDevotionsCount] = useState<number>(0);
     const [streak, setStreak] = useState<StreakData | null>(null);
@@ -63,9 +63,10 @@ export default function Profile() {
 
     if (!user) return null;
 
-    // Extract user name from profile or email
-    const userName =
-        profile?.full_name || user.email?.split("@")[0] || "Friend";
+    // Extract user name from profile or default
+    const userName = profileLoading
+        ? "..."
+        : (profile?.full_name || "Friend");
     const memberSince = new Date(user.created_at).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",

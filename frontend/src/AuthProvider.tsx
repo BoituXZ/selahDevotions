@@ -7,7 +7,8 @@ interface AuthContextType {
     user: User | null;
     session: Session | null;
     profile: Profile | null;
-    loading: boolean;
+    loading: boolean;        // Auth loading (session check)
+    profileLoading: boolean; // Profile fetch loading
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType>({
     session: null,
     profile: null,
     loading: true,
+    profileLoading: false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -24,18 +26,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [profileLoading, setProfileLoading] = useState(false);
 
     // Fetch profile data from the profiles table
     const fetchProfile = async (user: User) => {
         try {
-            const { data, error } = await supabase
+            console.log("🔍 [Profile] Starting fetch for user:", user.id);
+
+            // Add timeout to profile fetch to prevent hanging
+            const profileTimeout = new Promise<null>((_, reject) =>
+                setTimeout(() => reject(new Error("Profile fetch timeout")), 8000)
+            );
+
+            const profileFetch = supabase
                 .from("profiles")
                 .select("*")
                 .eq("id", user.id)
                 .single();
 
+            const result = await Promise.race([profileFetch, profileTimeout]);
+
+            if (result === null) {
+                console.error("❌ [Profile] Fetch timed out");
+                return null;
+            }
+
+            const { data, error } = result as any;
+
+            console.log("🔍 [Profile] Fetch response:", {
+                hasData: !!data,
+                hasError: !!error,
+                fullName: data?.full_name,
+            });
+
             if (error) {
-                console.error("Error fetching profile:", error);
+                console.error("❌ [Profile] Error fetching profile:", error);
                 return null;
             }
 
@@ -44,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Sync full_name from auth metadata if missing in profile
             if (!profileData.full_name && user.user_metadata?.full_name) {
                 const fullName = user.user_metadata.full_name;
-                console.log("Syncing full_name from auth metadata:", fullName);
+                console.log("🔄 [Profile] Syncing full_name from auth metadata:", fullName);
 
                 const { error: updateError } = await supabase
                     .from("profiles")
@@ -53,25 +78,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 if (!updateError) {
                     profileData = { ...profileData, full_name: fullName };
+                    console.log("✅ [Profile] Successfully synced full_name");
                 }
             }
 
+            console.log("✅ [Profile] Fetch complete:", profileData);
             return profileData;
         } catch (err) {
-            console.error("Failed to fetch profile:", err);
+            console.error("❌ [Profile] Failed to fetch profile:", err);
             return null;
         }
     };
 
     useEffect(() => {
         let isCancelled = false;
-        console.log("🔐 AuthProvider: Initializing auth...");
+        console.log("🔐 [Auth] Initializing auth...");
 
         const initAuth = async () => {
             try {
-                // Create a promise that rejects after 5 seconds
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error("Auth timeout")), 5000)
+                // Create a promise that rejects after 10 seconds
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error("Auth timeout")), 10000)
                 );
 
                 // Check active session with race condition
@@ -86,28 +113,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (isCancelled) return;
 
                 if (error) {
-                    console.error("❌ Session error:", error);
+                    console.error("❌ [Auth] Session error:", error);
                     setSession(null);
                     setUser(null);
+                    setProfile(null);
                 } else {
+                    console.log("✅ [Auth] Session retrieved:", !!session);
                     setSession(session);
                     setUser(session?.user ?? null);
 
                     if (session?.user) {
-                        // Fetch profile in background, don't block
-                        fetchProfile(session.user).then((profileData) => {
-                            if (!isCancelled) setProfile(profileData);
-                        });
+                        // CRITICAL: Set profileLoading BEFORE starting fetch
+                        setProfileLoading(true);
+                        console.log("🔄 [Profile] Loading state set to true");
+
+                        // Fetch profile and WAIT for it to complete
+                        const profileData = await fetchProfile(session.user);
+
+                        if (!isCancelled) {
+                            setProfile(profileData);
+                            setProfileLoading(false);
+                            console.log("✅ [Profile] Loading complete, state updated");
+                        }
                     }
                 }
             } catch (err) {
-                console.error("❌ Auth initialization error/timeout:", err);
+                console.error("❌ [Auth] Initialization error/timeout:", err);
                 if (!isCancelled) {
                     setSession(null);
                     setUser(null);
+                    setProfile(null);
+                    setProfileLoading(false);
                 }
             } finally {
-                if (!isCancelled) setLoading(false);
+                // Only set auth loading to false AFTER everything completes
+                if (!isCancelled) {
+                    setLoading(false);
+                    console.log("✅ [Auth] Initialization complete");
+                }
             }
         };
 
@@ -117,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log(`🔐 Auth event: ${event}`);
+            console.log(`🔐 [Auth] Auth event: ${event}`);
 
             if (isCancelled) return;
 
@@ -126,14 +169,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (event === "SIGNED_OUT") {
                 setProfile(null);
-                // Optional: Clear data if needed, but usually handled by redirection
+                setProfileLoading(false);
             } else if (
                 session?.user &&
                 (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")
             ) {
+                // Set profileLoading BEFORE fetching
+                setProfileLoading(true);
+                console.log("🔄 [Profile] Auth change - loading profile");
+
                 // Refresh profile on sign in
                 const profileData = await fetchProfile(session.user);
-                if (!isCancelled) setProfile(profileData);
+
+                if (!isCancelled) {
+                    setProfile(profileData);
+                    setProfileLoading(false);
+                    console.log("✅ [Profile] Auth change - profile updated");
+                }
             }
 
             setLoading(false);
@@ -146,7 +198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, session, profile, loading }}>
+        <AuthContext.Provider value={{ user, session, profile, loading, profileLoading }}>
             {children}
         </AuthContext.Provider>
     );

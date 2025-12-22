@@ -13,7 +13,7 @@ interface StreakData {
 }
 
 export default function Dashboard() {
-    const { user, profile } = useAuth();
+    const { user, profile, profileLoading } = useAuth();
     const [streak, setStreak] = useState<StreakData | null>(null);
     const [latestDevotion, setLatestDevotion] = useState<Devotion | null>(null);
     const [devotionCount, setDevotionCount] = useState(0);
@@ -56,8 +56,9 @@ export default function Dashboard() {
         setShowWelcome(false);
     };
 
-    const userName =
-        profile?.full_name || user?.email?.split("@")[0] || "Friend";
+    const userName = profileLoading
+        ? "..."
+        : (profile?.full_name || "Friend");
 
     return (
         <>
