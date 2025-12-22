@@ -26,12 +26,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     // Fetch profile data from the profiles table
-    const fetchProfile = async (userId: string) => {
+    const fetchProfile = async (user: User) => {
         try {
             const { data, error } = await supabase
                 .from("profiles")
                 .select("*")
-                .eq("id", userId)
+                .eq("id", user.id)
                 .single();
 
             if (error) {
@@ -39,7 +39,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return null;
             }
 
-            return data as Profile;
+            let profileData = data as Profile;
+
+            // Sync full_name from auth metadata if missing in profile
+            if (!profileData.full_name && user.user_metadata?.full_name) {
+                const fullName = user.user_metadata.full_name;
+                console.log("Syncing full_name from auth metadata:", fullName);
+
+                const { error: updateError } = await supabase
+                    .from("profiles")
+                    .update({ full_name: fullName })
+                    .eq("id", user.id);
+
+                if (!updateError) {
+                    profileData = { ...profileData, full_name: fullName };
+                }
+            }
+
+            return profileData;
         } catch (err) {
             console.error("Failed to fetch profile:", err);
             return null;
@@ -78,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                     if (session?.user) {
                         // Fetch profile in background, don't block
-                        fetchProfile(session.user.id).then((profileData) => {
+                        fetchProfile(session.user).then((profileData) => {
                             if (!isCancelled) setProfile(profileData);
                         });
                     }
@@ -115,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")
             ) {
                 // Refresh profile on sign in
-                const profileData = await fetchProfile(session.user.id);
+                const profileData = await fetchProfile(session.user);
                 if (!isCancelled) setProfile(profileData);
             }
 
