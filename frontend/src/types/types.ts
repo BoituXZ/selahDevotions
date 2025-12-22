@@ -4,6 +4,14 @@ export interface Devotion {
     scripture_ref?: string;
     mood?: string;
     created_at: string;
+    is_encrypted?: boolean;
+}
+
+export interface UserPreferences {
+    user_id: string;
+    has_seen_encryption_notice: boolean;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface Profile {

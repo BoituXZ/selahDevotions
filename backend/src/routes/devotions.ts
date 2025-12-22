@@ -4,6 +4,8 @@ import { zValidator } from "@hono/zod-validator";
 import sanitizeHtml from "sanitize-html";
 import { supabase } from "../lib/supabase";
 import { logger } from "../lib/logger";
+import { encryptContent, decryptContent } from "../services/encryption";
+import { getUserEncryptionKey } from "../services/key-management";
 type Variables = {
     user: {
         id: string;
@@ -46,31 +48,54 @@ devotions.post(
             ? sanitizeHtml(body.mood, { allowedTags: [] })
             : null;
 
-        // 5. Safe Insertion
-        const { data, error } = await supabase
-            .from("devotions")
-            .insert({
-                user_id: user.id,
-                content: cleanContent,
-                scripture_ref: cleanScripture,
-                mood: cleanMood,
-            })
-            .select()
-            .single();
+        try {
+            // 5. Get or create user's encryption key
+            const userKey = await getUserEncryptionKey(user.id);
 
-        if (error) {
-            logger.error("Failed to create devotion", error, {
+            // 6. Encrypt the sanitized content
+            const encryptedContent = encryptContent(cleanContent, userKey);
+
+            // 7. Store encrypted content
+            const { data, error } = await supabase
+                .from("devotions")
+                .insert({
+                    user_id: user.id,
+                    content: "", // Keep empty for backward compatibility
+                    encrypted_content: encryptedContent,
+                    is_encrypted: true,
+                    encryption_version: 1,
+                    scripture_ref: cleanScripture,
+                    mood: cleanMood,
+                })
+                .select()
+                .single();
+
+            if (error) {
+                logger.error("Failed to create devotion", error, {
+                    userId: user.id,
+                });
+                return c.json({ error: error.message }, 500);
+            }
+
+            logger.info("Encrypted devotion created successfully", {
+                userId: user.id,
+                devotionId: data.id,
+            });
+
+            // 8. Decrypt before returning to client
+            const decryptedDevotion = {
+                ...data,
+                content: decryptContent(data.encrypted_content, userKey),
+                encrypted_content: undefined, // Don't send encrypted data to client
+            };
+
+            return c.json({ success: true, devotion: decryptedDevotion });
+        } catch (encryptionError) {
+            logger.error("Encryption/decryption failed", encryptionError as Error, {
                 userId: user.id,
             });
-            return c.json({ error: error.message }, 500);
+            return c.json({ error: "Failed to secure devotion" }, 500);
         }
-
-        logger.info("Devotion created successfully", {
-            userId: user.id,
-            devotionId: data.id,
-        });
-
-        return c.json({ success: true, devotion: data });
     }
 );
 
@@ -96,12 +121,37 @@ devotions.get("/:id", async (c) => {
     logger.debug("Devotion retrieved", {
         userId: user.id,
         devotionId: id,
+        isEncrypted: data.is_encrypted,
     });
 
-    return c.json(data);
+    try {
+        // Decrypt if encrypted
+        if (data.is_encrypted && data.encrypted_content) {
+            const userKey = await getUserEncryptionKey(user.id);
+            const decryptedContent = decryptContent(
+                data.encrypted_content,
+                userKey
+            );
+
+            return c.json({
+                ...data,
+                content: decryptedContent,
+                encrypted_content: undefined,
+            });
+        } else {
+            // Legacy plain-text devotion
+            return c.json(data);
+        }
+    } catch (decryptionError) {
+        logger.error("Failed to decrypt devotion", decryptionError as Error, {
+            userId: user.id,
+            devotionId: id,
+        });
+        return c.json({ error: "Failed to retrieve devotion" }, 500);
+    }
 });
 
-// GET remains mostly the same, but now serves clean data
+// GET list - decrypt all encrypted devotions
 devotions.get("/", async (c) => {
     const user = c.get("user");
 
@@ -124,7 +174,29 @@ devotions.get("/", async (c) => {
         count: data?.length || 0,
     });
 
-    return c.json(data);
+    try {
+        // Get user encryption key once for all decryptions
+        const userKey = await getUserEncryptionKey(user.id);
+
+        // Decrypt all encrypted devotions
+        const decryptedDevotions = data.map((devotion) => {
+            if (devotion.is_encrypted && devotion.encrypted_content) {
+                return {
+                    ...devotion,
+                    content: decryptContent(devotion.encrypted_content, userKey),
+                    encrypted_content: undefined,
+                };
+            }
+            return devotion;
+        });
+
+        return c.json(decryptedDevotions);
+    } catch (decryptionError) {
+        logger.error("Failed to decrypt devotions", decryptionError as Error, {
+            userId: user.id,
+        });
+        return c.json({ error: "Failed to retrieve devotions" }, 500);
+    }
 });
 
 export default devotions;

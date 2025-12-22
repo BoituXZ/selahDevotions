@@ -23,6 +23,12 @@ const envSchema = z.object({
     // Optional / Defaults
     FRONTEND_URL: z.string().default("*"),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+
+    // Encryption Configuration (Required for production)
+    ENCRYPTION_MASTER_KEY: z
+        .string()
+        .min(32, "Master key must be at least 32 characters"),
+    ENCRYPTION_SALT: z.string().optional(),
 });
 
 // Validate

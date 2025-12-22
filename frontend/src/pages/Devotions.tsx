@@ -2,15 +2,17 @@ import { useEffect, useState, useCallback } from "react";
 import { Plus } from "lucide-react";
 import { api } from "../api";
 import { useNavigate } from "react-router-dom";
-import type { Devotion } from "../types/types";
+import type { Devotion, UserPreferences } from "../types/types";
 import DevotionCard from "../components/DevotionCard";
 import CreateDevotionModal from "../components/CreateDevotionModal";
 import IndieTips from "../components/IndieTips";
+import EncryptionNotice from "../components/EncryptionNotice";
 
 const Devotions = () => {
     const [devotions, setDevotions] = useState<Devotion[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showEncryptionNotice, setShowEncryptionNotice] = useState(false);
     const navigate = useNavigate();
 
     const fetchDevotions = useCallback(async () => {
@@ -34,6 +36,23 @@ const Devotions = () => {
         fetchDevotions();
     }, [fetchDevotions]);
 
+    useEffect(() => {
+        const checkEncryptionNotice = async () => {
+            try {
+                const prefs = await api.get<UserPreferences>(
+                    "/api/preferences"
+                );
+                if (!prefs.has_seen_encryption_notice) {
+                    setShowEncryptionNotice(true);
+                }
+            } catch (error) {
+                console.error("Failed to fetch preferences:", error);
+            }
+        };
+
+        checkEncryptionNotice();
+    }, []);
+
     return (
         <div className="flex-1 overflow-y-auto bg-stone-50 pb-28 md:pb-12 p-6 md:p-12">
             <div className="max-w-5xl mx-auto space-y-8">
@@ -55,6 +74,13 @@ const Devotions = () => {
                         <span className="font-medium">New Entry</span>
                     </button>
                 </div>
+
+                {/* Encryption Notice */}
+                {showEncryptionNotice && (
+                    <EncryptionNotice
+                        onDismiss={() => setShowEncryptionNotice(false)}
+                    />
+                )}
 
                 {/* Grid List */}
                 <div className="min-h-[200px]">

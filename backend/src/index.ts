@@ -28,6 +28,7 @@ try {
     const devotions = require("./routes/devotions").default;
     const streaks = require("./routes/streaks").default;
     const chat = require("./routes/chat").default;
+    const preferences = require("./routes/preferences").default;
 
     console.log("✅ Environment valid. Mounting full application...");
 
@@ -77,6 +78,7 @@ try {
     app.route("/api/devotions", devotions);
     app.route("/api/streaks", streaks);
     app.route("/api/chat", chat);
+    app.route("/api/preferences", preferences);
 
     logger.info("Selah API fully initialized");
 } catch (error) {
