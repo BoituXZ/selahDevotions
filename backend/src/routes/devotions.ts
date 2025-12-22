@@ -4,7 +4,11 @@ import { zValidator } from "@hono/zod-validator";
 import sanitizeHtml from "sanitize-html";
 import { supabase } from "../lib/supabase";
 import { logger } from "../lib/logger";
-import type { Variables } from "../index";
+type Variables = {
+    user: {
+        id: string;
+    };
+};
 
 const devotions = new Hono<{ Variables: Variables }>();
 

@@ -10,7 +10,9 @@ export default function DevotionCard({ devotion, onClick }: DevotionCardProps) {
     
     // Deterministic color based on ID
     const colors = ["bg-[#A3B18A]", "bg-[#D4C5A9]", "bg-[#9CA3AF]", "bg-[#B5C0D0]"]; // Sage, Sand, Slate, Blue-ish
-    const colorClass = colors[devotion.id % colors.length];
+    // Use first 8 chars of UUID (hex string) as seed for deterministic color
+    const colorIndex = parseInt(devotion.id.substring(0, 8), 16) % colors.length;
+    const colorClass = colors[colorIndex];
 
     return (
         <div

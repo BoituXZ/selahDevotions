@@ -1,5 +1,5 @@
 export interface Devotion {
-    id: number;
+    id: string;
     user_id: string;
     content: string;
     scripture_ref?: string;
