@@ -13,7 +13,7 @@ interface StreakData {
 }
 
 export default function Dashboard() {
-    const { user, profile, profileLoading } = useAuth();
+    const { profile, profileLoading } = useAuth();
     const [streak, setStreak] = useState<StreakData | null>(null);
     const [latestDevotion, setLatestDevotion] = useState<Devotion | null>(null);
     const [devotionCount, setDevotionCount] = useState(0);

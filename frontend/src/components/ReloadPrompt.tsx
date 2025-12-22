@@ -9,8 +9,8 @@ export function ReloadPrompt() {
         needRefresh: [needRefresh, setNeedRefresh],
         updateServiceWorker,
     } = useRegisterSW({
-        onRegistered(r: ServiceWorkerRegistration | undefined) {},
-        onRegisterError(error: unknown) {},
+        onRegistered() {},
+        onRegisterError() {},
     });
 
     const [dismissalCount, setDismissalCount] = useState(() => {
