@@ -39,7 +39,7 @@ try {
             contentSecurityPolicy: {
                 defaultSrc: ["'self'"],
                 scriptSrc: ["'self'", "'unsafe-inline'"],
-                connectSrc: ["'self'", "https://selahi.vercel.app"], // Hardcoded for extra safety
+                connectSrc: ["'self'", env.FRONTEND_URL],
             },
             crossOriginEmbedderPolicy: false,
             crossOriginResourcePolicy: "cross-origin",
@@ -51,8 +51,8 @@ try {
         "/*",
         cors({
             origin: (origin) => {
-                // 1. Allow your specific Vercel App
-                if (origin === "https://selahi.vercel.app") return origin;
+                // 1. Allow configured frontend URL
+                if (origin === env.FRONTEND_URL) return origin;
 
                 // 2. Allow Localhost ONLY in Development
                 if (
