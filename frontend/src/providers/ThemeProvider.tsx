@@ -54,7 +54,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     );
 
     // Debounce timer for Supabase sync
-    const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Apply theme to DOM
     useEffect(() => {
