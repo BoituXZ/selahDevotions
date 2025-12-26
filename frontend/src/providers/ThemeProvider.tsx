@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useRef } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "../AuthProvider";
 import { api } from "../api";
 
@@ -8,13 +8,13 @@ type EffectiveTheme = "light" | "dark";
 interface ThemeContextType {
     themeMode: ThemeMode;
     effectiveTheme: EffectiveTheme;
-    setTheme: (mode: ThemeMode) => void;
+    setTheme: (mode: ThemeMode) => Promise<void>;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
     themeMode: "system",
     effectiveTheme: "light",
-    setTheme: () => {},
+    setTheme: async () => {},
 });
 
 export const useTheme = () => useContext(ThemeContext);
@@ -40,7 +40,8 @@ function resolveEffectiveTheme(mode: ThemeMode): EffectiveTheme {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
 
-    // Initialize theme from localStorage or default to 'system'
+    // Initialize from localStorage for instant feedback
+    // This prevents flash of wrong theme on page load
     const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
         const stored = localStorage.getItem(THEME_STORAGE_KEY);
         if (stored === "light" || stored === "dark" || stored === "system") {
@@ -50,11 +51,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
 
     const [effectiveTheme, setEffectiveTheme] = useState<EffectiveTheme>(() =>
-        resolveEffectiveTheme(themeMode)
+        resolveEffectiveTheme("system")
     );
 
-    // Debounce timer for Supabase sync
-    const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // Update effectiveTheme when themeMode changes
+    useEffect(() => {
+        const resolved = resolveEffectiveTheme(themeMode);
+        setEffectiveTheme(resolved);
+    }, [themeMode]);
 
     // Apply theme to DOM
     useEffect(() => {
@@ -84,55 +88,33 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         };
     }, [themeMode]);
 
-    // Sync theme preference to Supabase (debounced)
-    useEffect(() => {
-        // Clear any pending sync
-        if (syncTimeoutRef.current) {
-            clearTimeout(syncTimeoutRef.current);
-        }
-
-        // Only sync if user is authenticated
-        if (!user) return;
-
-        // Debounce the API call by 1000ms
-        syncTimeoutRef.current = setTimeout(async () => {
-            try {
-                await api.post("/api/preferences/update-theme", {
-                    theme_preference: themeMode,
-                });
-            } catch (error) {
-                // Silently fail - theme still works via localStorage
-                console.error("Failed to sync theme preference to server:", error);
-            }
-        }, 1000);
-
-        return () => {
-            if (syncTimeoutRef.current) {
-                clearTimeout(syncTimeoutRef.current);
-            }
-        };
-    }, [themeMode, user]);
-
     // Load theme preference from Supabase on mount (authenticated users only)
+    // Supabase is the source of truth
     useEffect(() => {
         if (!user) return;
 
         const loadUserPreference = async () => {
             try {
-                const response = await api.get<{ theme_preference?: ThemeMode }>("/api/preferences");
+                // Add timestamp to prevent caching
+                const response = await api.get<{
+                    theme_preference?: ThemeMode;
+                }>(`/api/preferences?t=${Date.now()}`);
 
                 if (response.theme_preference) {
-                    // Only update if different from localStorage
-                    const storedLocal = localStorage.getItem(THEME_STORAGE_KEY);
-                    if (response.theme_preference !== storedLocal) {
+                    // Only update if different from current (prevents unnecessary re-renders)
+                    if (response.theme_preference !== themeMode) {
                         setThemeMode(response.theme_preference);
+                        // Sync with localStorage
                         localStorage.setItem(THEME_STORAGE_KEY, response.theme_preference);
-                        setEffectiveTheme(resolveEffectiveTheme(response.theme_preference));
                     }
+                    // effectiveTheme will be automatically derived by useEffect (lines 52-61)
                 }
             } catch (error) {
-                // Silently fail - use localStorage value
-                console.error("Failed to load theme preference from server:", error);
+                // Silently fail - fallback to system default
+                console.error(
+                    "Failed to load theme preference from server:",
+                    error
+                );
             }
         };
 
@@ -140,14 +122,35 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }, [user]);
 
     // Public API for changing theme
-    const setTheme = (mode: ThemeMode) => {
+    // Saves to both localStorage and Supabase
+    const setTheme = async (mode: ThemeMode) => {
+        // Update local state immediately for UI responsiveness
         setThemeMode(mode);
+
+        // Save to localStorage for instant feedback on next load
         localStorage.setItem(THEME_STORAGE_KEY, mode);
-        setEffectiveTheme(resolveEffectiveTheme(mode));
+        // effectiveTheme will be automatically derived by useEffect (lines 52-61)
+
+        // Save to Supabase if user is authenticated (for cross-device sync)
+        if (user) {
+            try {
+                await api.post("/api/preferences/update-theme", {
+                    theme_preference: mode,
+                });
+            } catch (error) {
+                console.error(
+                    "Failed to save theme preference to server:",
+                    error
+                );
+                throw error; // Re-throw so Profile.tsx can handle it
+            }
+        }
     };
 
     return (
-        <ThemeContext.Provider value={{ themeMode, effectiveTheme, setTheme }}>
+        <ThemeContext.Provider
+            value={{ themeMode, effectiveTheme, setTheme }}
+        >
             {children}
         </ThemeContext.Provider>
     );

@@ -55,12 +55,15 @@ export default function Profile() {
             .finally(() => setLoading(false));
     }, []);
 
-    const handleSaveTheme = async () => {
+    const handleThemeSelect = async (theme: "light" | "dark" | "system") => {
+        setSelectedTheme(theme);
         setSavingTheme(true);
         try {
-            setTheme(selectedTheme);
+            // Save theme immediately to both localStorage and Supabase
+            await setTheme(theme);
             toast.success("Theme preference saved");
         } catch (error) {
+            console.error("Failed to save theme:", error);
             toast.error("Failed to save theme preference");
         } finally {
             setSavingTheme(false);
@@ -192,7 +195,7 @@ export default function Profile() {
                             {/* Light Theme */}
                             <button
                                 type="button"
-                                onClick={() => setSelectedTheme("light")}
+                                onClick={() => handleThemeSelect("light")}
                                 className={`flex-1 px-4 py-3 rounded-lg border transition-all duration-200 ${
                                     selectedTheme === "light"
                                         ? "border-stone-900 dark:border-stone-50 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-lg"
@@ -208,7 +211,7 @@ export default function Profile() {
                             {/* Dark Theme */}
                             <button
                                 type="button"
-                                onClick={() => setSelectedTheme("dark")}
+                                onClick={() => handleThemeSelect("dark")}
                                 className={`flex-1 px-4 py-3 rounded-lg border transition-all duration-200 ${
                                     selectedTheme === "dark"
                                         ? "border-stone-900 dark:border-stone-50 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-lg"
@@ -224,7 +227,7 @@ export default function Profile() {
                             {/* System Theme */}
                             <button
                                 type="button"
-                                onClick={() => setSelectedTheme("system")}
+                                onClick={() => handleThemeSelect("system")}
                                 className={`flex-1 px-4 py-3 rounded-lg border transition-all duration-200 ${
                                     selectedTheme === "system"
                                         ? "border-stone-900 dark:border-stone-50 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-lg"
@@ -244,19 +247,6 @@ export default function Profile() {
                                 Following system preference:{" "}
                                 <span className="font-medium capitalize">{effectiveTheme}</span>
                             </p>
-                        )}
-
-                        {/* Save Button - Only show when there are changes */}
-                        {selectedTheme !== themeMode && (
-                            <div className="mt-4 animate-[fadeInUp_0.3s_ease-out]">
-                                <button
-                                    onClick={handleSaveTheme}
-                                    disabled={savingTheme}
-                                    className="w-full px-4 py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 rounded-lg font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {savingTheme ? "Saving..." : "Save Theme Preference"}
-                                </button>
-                            </div>
                         )}
                     </div>
                 </div>
