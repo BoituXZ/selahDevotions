@@ -36,7 +36,7 @@ export default function FeatureSection({
             />
 
             {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-stone-900/85 via-stone-900/75 to-stone-800/85" />
+            <div className="absolute inset-0 bg-gradient-to-br from-stone-900/85 via-stone-900/75 to-stone-800/85 dark:from-stone-950/90 dark:via-stone-950/80 dark:to-stone-900/90" />
 
             {/* Content Container */}
             <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 lg:px-16 py-16 w-full">
