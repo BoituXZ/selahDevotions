@@ -61,16 +61,16 @@ export default function DevotionDetail() {
         }
     };
 
-    if (loading) return <div className="p-8">Loading...</div>;
+    if (loading) return <div className="p-8 text-stone-800 dark:text-stone-100">Loading...</div>;
     if (!devotion) return null;
 
     return (
-        <div className="flex-1 overflow-y-auto bg-stone-50 pb-28 md:pb-12 p-6 md:p-12">
+        <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-stone-950 pb-28 md:pb-12 p-6 md:p-12">
             <div className="max-w-2xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <button
                         onClick={() => navigate("/devotions")}
-                        className="flex items-center gap-2 text-stone-500 hover:text-stone-800 transition text-sm font-medium"
+                        className="flex items-center gap-2 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 transition text-sm font-medium"
                     >
                         <ArrowLeft size={16} />
                         Back to Sanctuary
@@ -81,10 +81,10 @@ export default function DevotionDetail() {
                     />
                 </div>
 
-                <article className="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-stone-200">
-                    <header className="mb-8 border-b border-stone-100 pb-6">
-                        <div className="flex flex-wrap gap-4 text-sm text-stone-500 mb-4">
-                            <span className="flex items-center gap-1.5 bg-stone-50 px-3 py-1 rounded-full">
+                <article className="bg-white dark:bg-stone-900 p-8 md:p-12 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800">
+                    <header className="mb-8 border-b border-stone-100 dark:border-stone-800 pb-6">
+                        <div className="flex flex-wrap gap-4 text-sm text-stone-500 dark:text-stone-400 mb-4">
+                            <span className="flex items-center gap-1.5 bg-stone-50 dark:bg-stone-800 px-3 py-1 rounded-full">
                                 <Calendar size={14} />
                                 {new Date(
                                     devotion.created_at
@@ -96,7 +96,7 @@ export default function DevotionDetail() {
                                 })}
                             </span>
                             {devotion.mood && (
-                                <span className="flex items-center gap-1.5 bg-stone-50 px-3 py-1 rounded-full">
+                                <span className="flex items-center gap-1.5 bg-stone-50 dark:bg-stone-800 px-3 py-1 rounded-full">
                                     <Smile size={14} />
                                     {devotion.mood}
                                 </span>
@@ -104,10 +104,10 @@ export default function DevotionDetail() {
                         </div>
 
                         {devotion.scripture_ref && (
-                            <div className="flex items-start gap-3 text-stone-700 bg-orange-50/50 p-4 rounded-lg border border-orange-100">
+                            <div className="flex items-start gap-3 text-stone-700 dark:text-stone-300 bg-orange-50/50 dark:bg-orange-950/30 p-4 rounded-lg border border-orange-100 dark:border-orange-900/50">
                                 <BookOpen
                                     size={20}
-                                    className="mt-1 text-orange-400 shrink-0"
+                                    className="mt-1 text-orange-400 dark:text-orange-500 shrink-0"
                                 />
                                 <span className="font-serif italic text-lg">
                                     {devotion.scripture_ref}
@@ -116,12 +116,12 @@ export default function DevotionDetail() {
                         )}
                     </header>
 
-                    {/* Content Rendering 
+                    {/* Content Rendering
             Since we sanitized on the backend, we can use dangerouslySetInnerHTML.
             We add 'prose' (Tailwind Typography) to make the HTML look nice.
             */}
                     <div
-                        className="prose prose-stone prose-lg max-w-none font-serif leading-loose"
+                        className="prose prose-stone dark:prose-invert prose-lg max-w-none font-serif leading-loose"
                         dangerouslySetInnerHTML={{ __html: devotion.content }}
                     />
                 </article>
