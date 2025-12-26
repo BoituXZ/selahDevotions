@@ -17,7 +17,7 @@ export default function DevotionCard({ devotion, onClick }: DevotionCardProps) {
     return (
         <div
             onClick={onClick}
-            className="group cursor-pointer flex flex-col bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-stone-100 h-full"
+            className="group cursor-pointer flex flex-col bg-white dark:bg-stone-900 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-stone-100 dark:border-stone-800 h-full"
         >
             {/* Color Block */}
             <div className={`h-3 w-full ${colorClass}`} />
@@ -25,31 +25,31 @@ export default function DevotionCard({ devotion, onClick }: DevotionCardProps) {
             <div className="p-6 flex flex-col flex-1">
                 {/* Header: Date & Mood */}
                 <div className="flex justify-between items-start mb-4">
-                    <span className="text-xs font-bold tracking-widest text-stone-400 uppercase font-sans">
+                    <span className="text-xs font-bold tracking-widest text-stone-400 dark:text-stone-500 uppercase font-sans">
                         {new Date(devotion.created_at).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
                         })}
                     </span>
                     {devotion.mood && (
-                        <span className="text-[10px] tracking-wider uppercase border border-stone-200 text-stone-500 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] tracking-wider uppercase border border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 px-2 py-0.5 rounded-full">
                             {devotion.mood}
                         </span>
                     )}
                 </div>
 
                 {/* Content Preview */}
-                <p className="text-xl font-serif text-stone-800 leading-snug line-clamp-3 mb-4 group-hover:text-stone-600 transition-colors">
+                <p className="text-xl font-serif text-stone-800 dark:text-stone-100 leading-snug line-clamp-3 mb-4 group-hover:text-stone-600 dark:group-hover:text-stone-300 transition-colors">
                     {plainText || (
-                        <span className="text-stone-400 italic font-sans text-sm">
+                        <span className="text-stone-400 dark:text-stone-500 italic font-sans text-sm">
                             Empty entry...
                         </span>
                     )}
                 </p>
 
                 {/* Footer (Scripture ref if exists) */}
-                <div className="mt-auto pt-4 border-t border-stone-50">
-                     <p className="text-xs text-stone-400 font-sans truncate">
+                <div className="mt-auto pt-4 border-t border-stone-50 dark:border-stone-800">
+                     <p className="text-xs text-stone-400 dark:text-stone-500 font-sans truncate">
                         {devotion.scripture_ref || "Reflection"}
                      </p>
                 </div>

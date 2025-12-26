@@ -64,21 +64,21 @@ export default function Dashboard() {
         <>
             <WelcomeModal isOpen={showWelcome} onClose={handleWelcomeClose} />
 
-            <div className="flex-1 overflow-y-auto bg-stone-50 pb-28 md:pb-12 p-6 md:p-12">
+            <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-stone-950 pb-28 md:pb-12 p-6 md:p-12">
                 <div className="max-w-5xl mx-auto space-y-12">
                     {/* Header Section */}
                     <header className="space-y-4 animate-[fadeInUp_0.5s_ease-out]">
-                        <h1 className="text-4xl md:text-5xl font-serif text-stone-800 tracking-tight">
+                        <h1 className="text-4xl md:text-5xl font-serif text-stone-800 dark:text-stone-100 tracking-tight">
                             Peace be with you,{" "}
                             <span className="capitalize">{userName}</span>.
                         </h1>
 
                         {/* Clean Stats Row */}
-                        <div className="flex items-center gap-3 text-stone-500 font-sans text-sm tracking-wide uppercase">
+                        <div className="flex items-center gap-3 text-stone-500 dark:text-stone-400 font-sans text-sm tracking-wide uppercase">
                             <span>
                                 {streak?.current_streak || 0} Days Active
                             </span>
-                            <span className="w-1 h-1 rounded-full bg-stone-300"></span>
+                            <span className="w-1 h-1 rounded-full bg-stone-300 dark:bg-stone-700"></span>
                             <span>{devotionCount} Prayers</span>
                         </div>
                     </header>
@@ -92,7 +92,7 @@ export default function Dashboard() {
                                     ? `/devotions/${latestDevotion.id}`
                                     : "/devotions"
                             }
-                            className="group relative bg-white rounded-2xl p-8 shadow-sm border border-stone-100 hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col justify-between min-h-[280px]"
+                            className="group relative bg-white dark:bg-stone-900 rounded-2xl p-8 shadow-sm border border-stone-100 dark:border-stone-800 hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col justify-between min-h-[280px]"
                         >
                             <div className="absolute top-0 left-0 w-2 h-full bg-[#A3B18A]" />{" "}
                             {/* Sage accent */}
@@ -106,7 +106,7 @@ export default function Dashboard() {
                                     </span>
                                 </div>
 
-                                <h3 className="text-2xl font-serif text-stone-800 leading-tight group-hover:text-stone-600 transition-colors line-clamp-3">
+                                <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100 leading-tight group-hover:text-stone-600 dark:group-hover:text-stone-300 transition-colors line-clamp-3">
                                     {latestDevotion
                                         ? latestDevotion.content
                                               .replace(/<[^>]*>?/gm, "")
@@ -114,7 +114,7 @@ export default function Dashboard() {
                                         : "Start your first devotion today."}
                                 </h3>
                             </div>
-                            <div className="flex items-center gap-2 text-stone-400 group-hover:text-stone-800 transition-colors mt-8">
+                            <div className="flex items-center gap-2 text-stone-400 group-hover:text-stone-800 dark:group-hover:text-stone-200 transition-colors mt-8">
                                 <span className="text-sm font-medium">
                                     Open Journal
                                 </span>
@@ -129,28 +129,28 @@ export default function Dashboard() {
                         {/* Right Card: New Chat / Selah for a moment */}
                         <Link
                             to="/chat"
-                            className="group relative bg-stone-900 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between min-h-[280px]"
+                            className="group relative bg-stone-900 dark:bg-stone-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between min-h-[280px]"
                         >
                             {/* Decorative gradient blob */}
-                            <div className="absolute -top-20 -right-20 w-64 h-64 bg-stone-800 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity" />
+                            <div className="absolute -top-20 -right-20 w-64 h-64 bg-stone-800 dark:bg-stone-700 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity" />
 
                             <div className="relative space-y-4 z-10">
-                                <div className="flex items-center gap-2 text-stone-400">
+                                <div className="flex items-center gap-2 text-stone-400 dark:text-stone-500">
                                     <Sparkles size={20} strokeWidth={1.5} />
                                     <span className="text-xs font-bold tracking-wider uppercase">
                                         New Reflection
                                     </span>
                                 </div>
 
-                                <h3 className="text-3xl font-serif text-white leading-tight">
+                                <h3 className="text-3xl font-serif text-white dark:text-stone-100 leading-tight">
                                     Selah for a moment...
                                 </h3>
-                                <p className="text-stone-400 font-sans leading-relaxed max-w-sm">
+                                <p className="text-stone-400 dark:text-stone-500 font-sans leading-relaxed max-w-sm">
                                     Find clarity and peace through conversation.
                                 </p>
                             </div>
 
-                            <div className="relative flex items-center gap-2 text-stone-500 group-hover:text-white transition-colors mt-8 z-10">
+                            <div className="relative flex items-center gap-2 text-stone-500 dark:text-stone-600 group-hover:text-white dark:group-hover:text-stone-100 transition-colors mt-8 z-10">
                                 <span className="text-sm font-medium">
                                     Start Chat
                                 </span>

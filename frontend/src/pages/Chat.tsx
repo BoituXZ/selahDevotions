@@ -91,16 +91,16 @@ export default function Chat() {
     };
 
     return (
-        <div className="flex flex-col h-full max-w-4xl mx-auto bg-stone-50 md:border-x border-stone-200 relative">
+        <div className="flex flex-col h-full max-w-4xl mx-auto bg-stone-50 dark:bg-stone-950 md:border-x border-stone-200 dark:border-stone-800 relative">
             {/* Header */}
-            <div className="p-4 border-b border-stone-200 flex items-center justify-center bg-stone-50/80 backdrop-blur sticky top-0 z-10 shrink-0">
-                <h1 className="font-serif font-bold text-xl text-stone-800 tracking-tight">
+            <div className="p-4 border-b border-stone-200 dark:border-stone-800 flex items-center justify-center bg-stone-50/80 dark:bg-stone-950/80 backdrop-blur sticky top-0 z-10 shrink-0">
+                <h1 className="font-serif font-bold text-xl text-stone-800 dark:text-stone-100 tracking-tight">
                     Selah
                 </h1>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-stone-50 scrollbar-hide pb-4">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-stone-50 dark:bg-stone-950 scrollbar-hide pb-4">
                 {messages.map((msg) => (
                     <MessageBubble
                         key={msg.id}
@@ -115,13 +115,13 @@ export default function Chat() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 md:p-6 bg-stone-50 border-t border-stone-200 pb-24 md:pb-6 shrink-0">
+            <div className="p-4 md:p-6 bg-stone-50 dark:bg-stone-950 border-t border-stone-200 dark:border-stone-800 pb-24 md:pb-6 shrink-0">
                 <form onSubmit={handleSend} className="relative max-w-3xl mx-auto">
-                    <div className="flex gap-2 relative bg-white rounded-3xl shadow-sm border border-stone-200 focus-within:ring-2 focus-within:ring-stone-100 focus-within:border-stone-300 transition-all duration-300">
+                    <div className="flex gap-2 relative bg-white dark:bg-stone-900 rounded-3xl shadow-sm border border-stone-200 dark:border-stone-800 focus-within:ring-2 focus-within:ring-stone-100 dark:focus-within:ring-stone-800 focus-within:border-stone-300 dark:focus-within:border-stone-700 transition-all duration-300">
                         <input
                             type="text"
                             placeholder="Ask a question or share a burden..."
-                            className="flex-1 bg-transparent px-6 py-4 outline-none placeholder:text-stone-400 disabled:opacity-50 disabled:cursor-not-allowed font-sans text-stone-800"
+                            className="flex-1 bg-transparent px-6 py-4 outline-none placeholder:text-stone-400 dark:placeholder:text-stone-500 disabled:opacity-50 disabled:cursor-not-allowed font-sans text-stone-800 dark:text-stone-100"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             disabled={loading}
@@ -130,14 +130,14 @@ export default function Chat() {
                         <button
                             type="submit"
                             disabled={loading || !input.trim()}
-                            className="absolute right-2 top-2 p-2 bg-stone-900 text-white rounded-full hover:bg-stone-700 disabled:opacity-0 disabled:scale-75 transition-all duration-200 shadow-md"
+                            className="absolute right-2 top-2 p-2 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 rounded-full hover:bg-stone-700 dark:hover:bg-stone-200 disabled:opacity-0 disabled:scale-75 transition-all duration-200 shadow-md"
                         >
                             <Send size={18} strokeWidth={1.5} />
                         </button>
                     </div>
                     {/* Character Counter */}
                     {showCounter && (
-                        <div className="text-xs text-stone-400 mt-2 text-right animate-[fadeIn_0.2s_ease-out]">
+                        <div className="text-xs text-stone-400 dark:text-stone-500 mt-2 text-right animate-[fadeIn_0.2s_ease-out]">
                             {charCount} / {maxChars}
                         </div>
                     )}

@@ -4,10 +4,20 @@
     --font-serif: "Playfair Display", serif;
 }
 
+@layer base {
+    :root {
+        color-scheme: light;
+    }
+
+    .dark {
+        color-scheme: dark;
+    }
+}
+
 body {
     /* Use the variables you just defined */
     font-family: var(--font-serif);
-    @apply bg-stone-50 text-stone-800;
+    @apply bg-stone-50 text-stone-800 dark:bg-stone-950 dark:text-stone-100;
 }
 
 /* ============================================

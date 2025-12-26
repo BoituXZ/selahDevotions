@@ -10,6 +10,7 @@ export interface Devotion {
 export interface UserPreferences {
     user_id: string;
     has_seen_encryption_notice: boolean;
+    theme_preference?: "light" | "dark" | "system";
     created_at?: string;
     updated_at?: string;
 }

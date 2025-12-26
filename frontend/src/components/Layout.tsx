@@ -58,11 +58,11 @@ export default function Layout() {
     };
 
     return (
-        <div className="h-screen w-full bg-stone-50 flex flex-col md:flex-row overflow-hidden">
+        <div className="h-screen w-full bg-stone-50 dark:bg-stone-950 flex flex-col md:flex-row overflow-hidden">
             {/* --- DESKTOP SIDEBAR --- */}
-            <aside className="hidden md:flex flex-col w-64 bg-white border-r border-stone-200 h-full">
+            <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-stone-900 border-r border-stone-200 dark:border-stone-800 h-full">
                 <div className="p-8">
-                    <h1 className="text-3xl font-serif font-bold text-stone-900 tracking-tight">
+                    <h1 className="text-3xl font-serif font-bold text-stone-900 dark:text-stone-50 tracking-tight">
                         Selah.
                     </h1>
                 </div>
@@ -76,8 +76,8 @@ export default function Layout() {
                 flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
                 ${
                     isActive
-                        ? "bg-stone-900 text-white shadow-md"
-                        : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                        ? "bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-md"
+                        : "text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100"
                 }
               `}
                         >
