@@ -128,7 +128,7 @@ export default function Auth() {
     const handleSubmit = mode === "login" ? handleLogin : handleRegister;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 flex items-center justify-center p-4">
             {showVerificationPending ? (
                 <VerificationPending
                     email={registeredEmail}
@@ -146,13 +146,13 @@ export default function Auth() {
                     loading={loading}
                 />
             ) : (
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 border border-stone-100">
+            <div className="bg-white dark:bg-stone-900 w-full max-w-md rounded-2xl shadow-2xl p-8 border border-stone-100 dark:border-stone-800">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl font-serif text-stone-800 mb-2">
+                    <h1 className="text-4xl font-serif text-stone-800 dark:text-stone-100 mb-2">
                         Selah.
                     </h1>
-                    <p className="text-stone-600">
+                    <p className="text-stone-600 dark:text-stone-400">
                         {mode === "login"
                             ? "Welcome back to your sanctuary."
                             : "Begin your journey of reflection."}
@@ -160,13 +160,13 @@ export default function Auth() {
                 </div>
 
                 {/* Tab Switcher */}
-                <div className="flex gap-2 mb-6 bg-stone-100 p-1 rounded-lg">
+                <div className="flex gap-2 mb-6 bg-stone-100 dark:bg-stone-800 p-1 rounded-lg">
                     <button
                         onClick={() => switchMode("login")}
                         className={`flex-1 py-2 rounded-md font-medium transition ${
                             mode === "login"
-                                ? "bg-stone-900 text-white"
-                                : "text-stone-600 hover:bg-stone-200"
+                                ? "bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900"
+                                : "text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700"
                         }`}
                     >
                         Login
@@ -175,8 +175,8 @@ export default function Auth() {
                         onClick={() => switchMode("register")}
                         className={`flex-1 py-2 rounded-md font-medium transition ${
                             mode === "register"
-                                ? "bg-stone-900 text-white"
-                                : "text-stone-600 hover:bg-stone-200"
+                                ? "bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900"
+                                : "text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700"
                         }`}
                     >
                         Register
@@ -190,12 +190,12 @@ export default function Auth() {
                         <div>
                             <label
                                 htmlFor="name"
-                                className="block text-sm font-medium text-stone-700 mb-2"
+                                className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2"
                             >
                                 Name
                             </label>
                             <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 dark:text-stone-500">
                                     <User size={18} />
                                 </div>
                                 <input
@@ -204,7 +204,7 @@ export default function Auth() {
                                     required
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 transition"
+                                    className="w-full pl-10 pr-4 py-3 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 transition placeholder:text-stone-400 dark:placeholder:text-stone-500"
                                     placeholder="Your Name"
                                     disabled={loading}
                                 />
@@ -216,12 +216,12 @@ export default function Auth() {
                     <div>
                         <label
                             htmlFor="email"
-                            className="block text-sm font-medium text-stone-700 mb-2"
+                            className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2"
                         >
                             Email
                         </label>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 dark:text-stone-500">
                                 <Mail size={18} />
                             </div>
                             <input
@@ -230,7 +230,7 @@ export default function Auth() {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 transition"
+                                className="w-full pl-10 pr-4 py-3 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 transition placeholder:text-stone-400 dark:placeholder:text-stone-500"
                                 placeholder="your@email.com"
                                 disabled={loading}
                             />
@@ -241,12 +241,12 @@ export default function Auth() {
                     <div>
                         <label
                             htmlFor="password"
-                            className="block text-sm font-medium text-stone-700 mb-2"
+                            className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2"
                         >
                             Password
                         </label>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 dark:text-stone-500">
                                 <Lock size={18} />
                             </div>
                             <input
@@ -256,13 +256,13 @@ export default function Auth() {
                                 minLength={8}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 transition"
+                                className="w-full pl-10 pr-4 py-3 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 transition placeholder:text-stone-400 dark:placeholder:text-stone-500"
                                 placeholder="••••••••"
                                 disabled={loading}
                             />
                         </div>
                         {mode === "register" && (
-                            <p className="text-xs text-stone-500 mt-1">
+                            <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
                                 Minimum 8 characters, 1 uppercase letter, 1 special character
                             </p>
                         )}
@@ -273,12 +273,12 @@ export default function Auth() {
                         <div>
                             <label
                                 htmlFor="confirmPassword"
-                                className="block text-sm font-medium text-stone-700 mb-2"
+                                className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2"
                             >
                                 Confirm Password
                             </label>
                             <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 dark:text-stone-500">
                                     <Lock size={18} />
                                 </div>
                                 <input
@@ -287,7 +287,7 @@ export default function Auth() {
                                     required
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 transition"
+                                    className="w-full pl-10 pr-4 py-3 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 transition placeholder:text-stone-400 dark:placeholder:text-stone-500"
                                     placeholder="••••••••"
                                     disabled={loading}
                                 />
@@ -304,7 +304,7 @@ export default function Auth() {
                             !password ||
                             (mode === "register" && (!name || !confirmPassword))
                         }
-                        className="w-full bg-stone-900 text-white py-3 rounded-lg font-medium hover:bg-stone-800 transition shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-stone-900"
+                        className="w-full bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 py-3 rounded-lg font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-stone-900 dark:disabled:hover:bg-stone-50"
                     >
                         {loading
                             ? "..."
