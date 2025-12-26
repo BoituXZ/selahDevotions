@@ -9,13 +9,9 @@ import {
     Linkedin,
     Mail,
     Turntable,
-    Sun,
-    Moon,
-    Monitor,
 } from "lucide-react";
 import { supabase } from "../auth/supabase";
 import { useAuth } from "../AuthProvider";
-import { useTheme } from "../providers/ThemeProvider";
 import { api } from "../api";
 import { toast } from "sonner";
 import UserAvatar from "../components/UserAvatar";
@@ -28,18 +24,10 @@ interface StreakData {
 
 export default function Profile() {
     const { user, profile, profileLoading } = useAuth();
-    const { themeMode, effectiveTheme, setTheme } = useTheme();
     const navigate = useNavigate();
     const [devotionsCount, setDevotionsCount] = useState<number>(0);
     const [streak, setStreak] = useState<StreakData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [selectedTheme, setSelectedTheme] = useState<"light" | "dark" | "system">(themeMode);
-    const [savingTheme, setSavingTheme] = useState(false);
-
-    // Sync selectedTheme with global themeMode
-    useEffect(() => {
-        setSelectedTheme(themeMode);
-    }, [themeMode]);
 
     useEffect(() => {
         // Fetch user stats
@@ -54,21 +42,6 @@ export default function Profile() {
             .catch((err) => console.error("Failed to fetch stats:", err))
             .finally(() => setLoading(false));
     }, []);
-
-    const handleThemeSelect = async (theme: "light" | "dark" | "system") => {
-        setSelectedTheme(theme);
-        setSavingTheme(true);
-        try {
-            // Save theme immediately to both localStorage and Supabase
-            await setTheme(theme);
-            toast.success("Theme preference saved");
-        } catch (error) {
-            console.error("Failed to save theme:", error);
-            toast.error("Failed to save theme preference");
-        } finally {
-            setSavingTheme(false);
-        }
-    };
 
     const handleLogout = () => {
         toast("Are you sure you want to sign out?", {
@@ -174,80 +147,6 @@ export default function Profile() {
                                 Day Streak
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {/* Settings Section */}
-                <div
-                    className="bg-white dark:bg-stone-900 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 p-6 mb-6 animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0"
-                    style={{ animationDelay: "400ms" }}
-                >
-                    <h2 className="text-xl font-serif text-stone-800 dark:text-stone-100 mb-4">
-                        Settings
-                    </h2>
-
-                    {/* Theme Preference Section */}
-                    <div>
-                        <label className="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3 block">
-                            Appearance
-                        </label>
-                        <div className="flex gap-3">
-                            {/* Light Theme */}
-                            <button
-                                type="button"
-                                onClick={() => handleThemeSelect("light")}
-                                className={`flex-1 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                                    selectedTheme === "light"
-                                        ? "border-stone-900 dark:border-stone-50 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-lg"
-                                        : "border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-800"
-                                }`}
-                            >
-                                <div className="flex flex-col items-center">
-                                    <Sun size={18} className="mb-1" />
-                                    <span className="text-xs font-medium">Light</span>
-                                </div>
-                            </button>
-
-                            {/* Dark Theme */}
-                            <button
-                                type="button"
-                                onClick={() => handleThemeSelect("dark")}
-                                className={`flex-1 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                                    selectedTheme === "dark"
-                                        ? "border-stone-900 dark:border-stone-50 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-lg"
-                                        : "border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-800"
-                                }`}
-                            >
-                                <div className="flex flex-col items-center">
-                                    <Moon size={18} className="mb-1" />
-                                    <span className="text-xs font-medium">Dark</span>
-                                </div>
-                            </button>
-
-                            {/* System Theme */}
-                            <button
-                                type="button"
-                                onClick={() => handleThemeSelect("system")}
-                                className={`flex-1 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                                    selectedTheme === "system"
-                                        ? "border-stone-900 dark:border-stone-50 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-lg"
-                                        : "border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-800"
-                                }`}
-                            >
-                                <div className="flex flex-col items-center">
-                                    <Monitor size={18} className="mb-1" />
-                                    <span className="text-xs font-medium">System</span>
-                                </div>
-                            </button>
-                        </div>
-
-                        {/* System preference indicator */}
-                        {selectedTheme === "system" && (
-                            <p className="text-xs text-stone-500 dark:text-stone-400 mt-2 text-center">
-                                Following system preference:{" "}
-                                <span className="font-medium capitalize">{effectiveTheme}</span>
-                            </p>
-                        )}
                     </div>
                 </div>
 
