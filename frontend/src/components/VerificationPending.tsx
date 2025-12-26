@@ -4,11 +4,17 @@ import SelahLogo from "./SelahLogo";
 interface VerificationPendingProps {
     email: string;
     onBackToLogin: () => void;
+    onResend: () => void;
+    resendCooldown: number;
+    loading: boolean;
 }
 
 export default function VerificationPending({
     email,
     onBackToLogin,
+    onResend,
+    resendCooldown,
+    loading,
 }: VerificationPendingProps) {
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50">
@@ -49,6 +55,20 @@ export default function VerificationPending({
                     and begin your journey.
                 </p>
 
+                {/* Resend Button */}
+                <button
+                    onClick={onResend}
+                    disabled={loading || resendCooldown > 0}
+                    className="w-full bg-amber-600 text-white py-3 rounded-lg font-medium hover:bg-amber-700 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-600 mb-3"
+                >
+                    {loading
+                        ? "Sending..."
+                        : resendCooldown > 0
+                            ? `Resend in ${resendCooldown}s`
+                            : "Resend Verification Email"
+                    }
+                </button>
+
                 {/* Back to Login Button */}
                 <button
                     onClick={onBackToLogin}
@@ -59,7 +79,7 @@ export default function VerificationPending({
 
                 {/* Helper text */}
                 <p className="text-sm text-stone-500 text-center mt-4">
-                    Didn't receive it? Check your spam folder.
+                    Didn't receive it? Check your spam folder or use the resend button above.
                 </p>
             </div>
         </div>

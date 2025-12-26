@@ -4,6 +4,8 @@ import { Mail, Lock, User } from "lucide-react";
 import { supabase } from "../auth/supabase";
 import { useAuth } from "../AuthProvider";
 import { toast } from "sonner";
+import VerificationPending from "../components/VerificationPending";
+import { validatePassword } from "../lib/validation";
 
 export default function Auth() {
     const navigate = useNavigate();
@@ -16,7 +18,11 @@ export default function Auth() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showVerificationPending, setShowVerificationPending] = useState(false);
+    const [registeredEmail, setRegisteredEmail] = useState("");
+    const [resendCooldown, setResendCooldown] = useState(0);
 
     // If user is already authenticated, redirect to dashboard
     if (authLoading) return null;
@@ -48,10 +54,19 @@ export default function Auth() {
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email || !password || !name) return;
+        if (!email || !password || !name || !confirmPassword) return;
 
-        if (password.length < 6) {
-            toast.error("Password must be at least 6 characters");
+        // Password confirmation check
+        if (password !== confirmPassword) {
+            toast.error("Passwords do not match");
+            return;
+        }
+
+        // Enhanced password validation
+        const validation = validatePassword(password);
+        if (!validation.isValid) {
+            // Show all validation errors
+            validation.errors.forEach(error => toast.error(error));
             return;
         }
 
@@ -68,9 +83,44 @@ export default function Auth() {
 
         if (error) {
             toast.error(error.message);
+            setLoading(false);
         } else {
+            // Show verification UI instead of switching to login tab
+            setRegisteredEmail(email);
+            setShowVerificationPending(true);
             toast.success("Account created! Please check your email.");
-            setMode("login");
+            setLoading(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        if (resendCooldown > 0) {
+            toast.error(`Please wait ${resendCooldown} seconds before resending`);
+            return;
+        }
+
+        setLoading(true);
+        const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: registeredEmail,
+        });
+
+        if (error) {
+            toast.error(error.message);
+        } else {
+            toast.success("Verification email sent! Check your inbox.");
+
+            // Start 60-second cooldown
+            setResendCooldown(60);
+            const interval = setInterval(() => {
+                setResendCooldown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(interval);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
         }
         setLoading(false);
     };
@@ -79,6 +129,23 @@ export default function Auth() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50 flex items-center justify-center p-4">
+            {showVerificationPending ? (
+                <VerificationPending
+                    email={registeredEmail}
+                    onBackToLogin={() => {
+                        setShowVerificationPending(false);
+                        setMode("login");
+                        // Clear form
+                        setName("");
+                        setEmail("");
+                        setPassword("");
+                        setConfirmPassword("");
+                    }}
+                    onResend={handleResendVerification}
+                    resendCooldown={resendCooldown}
+                    loading={loading}
+                />
+            ) : (
             <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 border border-stone-100">
                 {/* Header */}
                 <div className="text-center mb-8">
@@ -186,7 +253,7 @@ export default function Auth() {
                                 id="password"
                                 type="password"
                                 required
-                                minLength={6}
+                                minLength={8}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 transition"
@@ -196,10 +263,37 @@ export default function Auth() {
                         </div>
                         {mode === "register" && (
                             <p className="text-xs text-stone-500 mt-1">
-                                Minimum 6 characters
+                                Minimum 8 characters, 1 uppercase letter, 1 special character
                             </p>
                         )}
                     </div>
+
+                    {/* Confirm Password Input (Register Only) */}
+                    {mode === "register" && (
+                        <div>
+                            <label
+                                htmlFor="confirmPassword"
+                                className="block text-sm font-medium text-stone-700 mb-2"
+                            >
+                                Confirm Password
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
+                                    <Lock size={18} />
+                                </div>
+                                <input
+                                    id="confirmPassword"
+                                    type="password"
+                                    required
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 transition"
+                                    placeholder="••••••••"
+                                    disabled={loading}
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     {/* Submit Button */}
                     <button
@@ -208,7 +302,7 @@ export default function Auth() {
                             loading ||
                             !email ||
                             !password ||
-                            (mode === "register" && !name)
+                            (mode === "register" && (!name || !confirmPassword))
                         }
                         className="w-full bg-stone-900 text-white py-3 rounded-lg font-medium hover:bg-stone-800 transition shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-stone-900"
                     >
@@ -220,6 +314,7 @@ export default function Auth() {
                     </button>
                 </form>
             </div>
+            )}
         </div>
     );
 }
