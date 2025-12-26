@@ -33,6 +33,13 @@ export default function Profile() {
     const [devotionsCount, setDevotionsCount] = useState<number>(0);
     const [streak, setStreak] = useState<StreakData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [selectedTheme, setSelectedTheme] = useState<"light" | "dark" | "system">(themeMode);
+    const [savingTheme, setSavingTheme] = useState(false);
+
+    // Sync selectedTheme with global themeMode
+    useEffect(() => {
+        setSelectedTheme(themeMode);
+    }, [themeMode]);
 
     useEffect(() => {
         // Fetch user stats
@@ -47,6 +54,18 @@ export default function Profile() {
             .catch((err) => console.error("Failed to fetch stats:", err))
             .finally(() => setLoading(false));
     }, []);
+
+    const handleSaveTheme = async () => {
+        setSavingTheme(true);
+        try {
+            setTheme(selectedTheme);
+            toast.success("Theme preference saved");
+        } catch (error) {
+            toast.error("Failed to save theme preference");
+        } finally {
+            setSavingTheme(false);
+        }
+    };
 
     const handleLogout = () => {
         toast("Are you sure you want to sign out?", {
@@ -165,16 +184,17 @@ export default function Profile() {
                     </h2>
 
                     {/* Theme Preference Section */}
-                    <div className="mb-6">
+                    <div>
                         <label className="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3 block">
                             Appearance
                         </label>
                         <div className="flex gap-3">
                             {/* Light Theme */}
                             <button
-                                onClick={() => setTheme("light")}
+                                type="button"
+                                onClick={() => setSelectedTheme("light")}
                                 className={`flex-1 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                                    themeMode === "light"
+                                    selectedTheme === "light"
                                         ? "border-stone-900 dark:border-stone-50 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-lg"
                                         : "border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-800"
                                 }`}
@@ -187,9 +207,10 @@ export default function Profile() {
 
                             {/* Dark Theme */}
                             <button
-                                onClick={() => setTheme("dark")}
+                                type="button"
+                                onClick={() => setSelectedTheme("dark")}
                                 className={`flex-1 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                                    themeMode === "dark"
+                                    selectedTheme === "dark"
                                         ? "border-stone-900 dark:border-stone-50 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-lg"
                                         : "border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-800"
                                 }`}
@@ -202,9 +223,10 @@ export default function Profile() {
 
                             {/* System Theme */}
                             <button
-                                onClick={() => setTheme("system")}
+                                type="button"
+                                onClick={() => setSelectedTheme("system")}
                                 className={`flex-1 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                                    themeMode === "system"
+                                    selectedTheme === "system"
                                         ? "border-stone-900 dark:border-stone-50 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-lg"
                                         : "border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-800"
                                 }`}
@@ -217,11 +239,24 @@ export default function Profile() {
                         </div>
 
                         {/* System preference indicator */}
-                        {themeMode === "system" && (
+                        {selectedTheme === "system" && (
                             <p className="text-xs text-stone-500 dark:text-stone-400 mt-2 text-center">
                                 Following system preference:{" "}
                                 <span className="font-medium capitalize">{effectiveTheme}</span>
                             </p>
+                        )}
+
+                        {/* Save Button - Only show when there are changes */}
+                        {selectedTheme !== themeMode && (
+                            <div className="mt-4 animate-[fadeInUp_0.3s_ease-out]">
+                                <button
+                                    onClick={handleSaveTheme}
+                                    disabled={savingTheme}
+                                    className="w-full px-4 py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 rounded-lg font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {savingTheme ? "Saving..." : "Save Theme Preference"}
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
