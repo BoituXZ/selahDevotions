@@ -50,16 +50,12 @@ class AIService {
      */
     private getClient(): GoogleGenAI {
         if (!this.client) {
-            logger.info("Initializing Google Vertex AI client", {
-                project: env.GOOGLE_CLOUD_PROJECT,
-                location: AI_CONFIG.LOCATION,
+            logger.info("Initializing Google AI Studio client", {
                 model: AI_CONFIG.MODEL,
             });
 
             this.client = new GoogleGenAI({
-                vertexai: true,
-                project: env.GOOGLE_CLOUD_PROJECT,
-                location: AI_CONFIG.LOCATION,
+                apiKey: env.GEMINI_API_KEY,
             });
         }
 
@@ -108,7 +104,7 @@ class AIService {
             return text;
         } catch (error: any) {
             // Log error details for debugging
-            logger.error("Vertex AI request failed", error, {
+            logger.error("Google AI Studio request failed", error, {
                 model: AI_CONFIG.MODEL,
                 messageLength: userMessage.length,
                 errorCode: error.code,

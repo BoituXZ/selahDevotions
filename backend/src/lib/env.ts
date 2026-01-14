@@ -13,13 +13,17 @@ const envSchema = z.object({
     // App Secrets (Required)
     SUPABASE_URL: z.string().min(1, "Supabase URL is required"),
     SUPABASE_KEY: z.string().min(1, "Supabase Key is required"),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "Supabase Service Role Key is required"),
-
-    // Google Cloud & AI (Required for Vertex AI)
-    GOOGLE_CLOUD_PROJECT: z
+    SUPABASE_SERVICE_ROLE_KEY: z
         .string()
-        .min(1, "Google Cloud Project ID is required"),
-    GOOGLE_CLOUD_LOCATION: z.string().default("us-central1"),
+        .min(1, "Supabase Service Role Key is required"),
+
+    // Google AI Studio (Required)
+    GEMINI_API_KEY: z
+        .string()
+        .min(
+            1,
+            "Gemini API key is required. Get it from https://aistudio.google.com/app/apikey"
+        ),
 
     // Optional / Defaults
     FRONTEND_URL: z.string().default("*"),

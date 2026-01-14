@@ -115,10 +115,9 @@ For more information, read the Bun API docs in `node_modules/bun-types/docs/**.m
 -   **Runtime:** Bun (v1.x)
 -   **Backend Framework:** Hono (v4.x)
 -   **Language:** TypeScript
--   **AI Infrastructure:** Google Cloud Vertex AI
-    -   **Model:** `gemini-3-flash-preview` (Dec 2025 release)
-    -   **Location:** `global` endpoint
-    -   **Auth:** Google Cloud IAM Service Account (JSON Key)
+-   **AI Infrastructure:** Google AI Studio
+    -   **Model:** `gemini-2.0-flash-lite-001`
+    -   **Auth:** API Key (Get from https://aistudio.google.com/app/apikey)
 -   **Database/Auth:** Supabase (PostgreSQL + Auth)
 -   **Validation:** Zod + @hono/zod-validator
 
@@ -130,22 +129,21 @@ For more information, read the Bun API docs in `node_modules/bun-types/docs/**.m
 -   **Routes:** `src/routes/chat.ts` - Handles AI inference.
 -   **Security:**
     -   Strict Zod validation on inputs.
-    -   IAM Service Account used for Vertex AI (Least Privilege: `Vertex AI User` role).
-    -   Environment variables for Project ID and Credentials.
+    -   API Key authentication for Google AI Studio.
+    -   Environment variable for API Key (`GEMINI_API_KEY`).
 
 ### Critical Configurations
 
--   **Google Cloud Project:** `selah-prod` (Production Tier)
--   **Vertex Region:** `global` (Required for Gemini 3 Preview)
--   **Service Account:** `backend-user@selah-prod...`
+-   **API Key:** Get from https://aistudio.google.com/app/apikey
+-   **Model:** `gemini-2.0-flash-lite-001`
 
 ## 4. Operational Requirements
 
--   **Rate Limiting:** Strict "fair usage" limits required to manage Vertex AI quotas.
+-   **Rate Limiting:** Strict "fair usage" limits required to manage Google AI Studio quotas.
 -   **Error Handling:** Custom messages for quota exhaustion ("We have run out of fish and bread").
 -   **Deployment:** Designed for containerized deployment (Docker/Cloud Run) or VPS.
 
 ## 5. Development Commands
 
 -   `bun run dev` - Starts local Hono server.
--   `bun run src/check-models.ts` - Utility to verify Vertex AI connectivity.
+-   `bun run src/check-models.ts` - Utility to verify AI connectivity.
