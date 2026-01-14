@@ -7,7 +7,7 @@ import { logger } from "../lib/logger";
 // ============================================
 export const AI_CONFIG = {
     LOCATION: "global",
-    MODEL: "gemini-3-flash-preview",
+    MODEL: "gemini-2.0-flash-lite-001",
     MAX_TOKENS: 2048,
     TEMPERATURE: 0.7,
 } as const;
