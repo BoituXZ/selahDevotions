@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Share2, Lock, Globe } from "lucide-react";
+import { Share2, Globe } from "lucide-react";
 import { toast } from "sonner";
 import type { Devotion } from "../types/types";
 import { api } from "../api";
