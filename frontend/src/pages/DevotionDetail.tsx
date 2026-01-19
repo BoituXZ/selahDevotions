@@ -1,12 +1,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, BookOpen, Smile } from "lucide-react";
+import {
+    ArrowLeft,
+    Calendar,
+    BookOpen,
+    Smile,
+    Share2,
+    Globe,
+} from "lucide-react";
 import { toast } from "sonner";
 import { api } from "../api";
 import type { Devotion } from "../types/types";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import CreateDevotionModal from "../components/CreateDevotionModal";
 import DevotionMenu from "../components/DevotionMenu";
+import ShareModal from "../components/ShareModal";
 
 export default function DevotionDetail() {
     const { id } = useParams<{ id: string }>();
@@ -16,6 +24,10 @@ export default function DevotionDetail() {
     const [loading, setLoading] = useState(true);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [shareUrl, setShareUrl] = useState("");
+    const [isSharing, setIsSharing] = useState(false);
+    const [isRevoking, setIsRevoking] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
     const fetchDevotion = () => {
@@ -36,6 +48,56 @@ export default function DevotionDetail() {
 
     const handleEdit = () => {
         setShowEditModal(true);
+    };
+
+    const handleShare = async () => {
+        if (!devotion) return;
+
+        if (devotion.is_shared && devotion.share_token) {
+            // Already shared, just show the modal with existing link
+            const url = `${window.location.origin}/share/${devotion.share_token}`;
+            setShareUrl(url);
+            setShowShareModal(true);
+            return;
+        }
+
+        // Generate new share link
+        setIsSharing(true);
+        try {
+            const response = await api.post<{
+                shareToken: string;
+                shareKey: string;
+                message: string;
+            }>(`/api/devotions/${devotion.id}/share`, {});
+
+            const url = `${window.location.origin}/share/${response.shareToken}#${response.shareKey}`;
+            setShareUrl(url);
+            setShowShareModal(true);
+            toast.success("Share link created!");
+            fetchDevotion(); // Refresh to update share status
+        } catch (error) {
+            console.error("Failed to create share link:", error);
+            toast.error("Failed to create share link");
+        } finally {
+            setIsSharing(false);
+        }
+    };
+
+    const handleRevoke = async () => {
+        if (!devotion) return;
+
+        setIsRevoking(true);
+        try {
+            await api.delete(`/api/devotions/${devotion.id}/share`);
+            toast.success("Share link revoked");
+            setShowShareModal(false);
+            fetchDevotion(); // Refresh to update share status
+        } catch (error) {
+            console.error("Failed to revoke share link:", error);
+            toast.error("Failed to revoke share link");
+        } finally {
+            setIsRevoking(false);
+        }
     };
 
     const handleEditSuccess = () => {
@@ -61,7 +123,12 @@ export default function DevotionDetail() {
         }
     };
 
-    if (loading) return <div className="p-8 text-stone-800 dark:text-stone-100">Loading...</div>;
+    if (loading)
+        return (
+            <div className="p-8 text-stone-800 dark:text-stone-100">
+                Loading...
+            </div>
+        );
     if (!devotion) return null;
 
     return (
@@ -75,10 +142,33 @@ export default function DevotionDetail() {
                         <ArrowLeft size={16} />
                         Back to Sanctuary
                     </button>
-                    <DevotionMenu
-                        onEdit={handleEdit}
-                        onDelete={() => setShowDeleteModal(true)}
-                    />
+                    <div className="flex items-center gap-2">
+                        {/* Share Button */}
+                        <button
+                            onClick={handleShare}
+                            disabled={isSharing}
+                            className={`p-2 rounded-lg transition-colors ${
+                                devotion.is_shared
+                                    ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+                                    : "text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800"
+                            }`}
+                            title={
+                                devotion.is_shared
+                                    ? "Manage share link"
+                                    : "Share devotion"
+                            }
+                        >
+                            {devotion.is_shared ? (
+                                <Globe size={20} />
+                            ) : (
+                                <Share2 size={20} />
+                            )}
+                        </button>
+                        <DevotionMenu
+                            onEdit={handleEdit}
+                            onDelete={() => setShowDeleteModal(true)}
+                        />
+                    </div>
                 </div>
 
                 <article className="bg-white dark:bg-stone-900 p-8 md:p-12 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800">
@@ -87,7 +177,7 @@ export default function DevotionDetail() {
                             <span className="flex items-center gap-1.5 bg-stone-50 dark:bg-stone-800 px-3 py-1 rounded-full">
                                 <Calendar size={14} />
                                 {new Date(
-                                    devotion.created_at
+                                    devotion.created_at,
                                 ).toLocaleDateString(undefined, {
                                     weekday: "long",
                                     year: "numeric",
@@ -141,6 +231,17 @@ export default function DevotionDetail() {
                     onConfirm={handleDelete}
                     loading={deleting}
                 />
+
+                {/* Share Modal */}
+                {showShareModal && shareUrl && (
+                    <ShareModal
+                        isOpen={showShareModal}
+                        onClose={() => setShowShareModal(false)}
+                        shareUrl={shareUrl}
+                        onRevoke={handleRevoke}
+                        isRevoking={isRevoking}
+                    />
+                )}
             </div>
         </div>
     );

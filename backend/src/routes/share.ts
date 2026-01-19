@@ -16,7 +16,6 @@ type Variables = {
         id: string;
     };
     supabase: SupabaseClient;
-    userId: string;
 };
 
 const share = new Hono<{ Variables: Variables }>();
@@ -29,12 +28,14 @@ const share = new Hono<{ Variables: Variables }>();
 share.post("/:id/share", async (c) => {
     try {
         const devotionId = c.req.param("id");
-        const userId = c.get("userId");
+        const user = c.get("user");
         const supabaseClient = c.get("supabase");
 
-        if (!userId) {
+        if (!user || !user.id) {
             return c.json({ error: "Unauthorized" }, 401);
         }
+
+        const userId = user.id;
 
         logger.info("Creating share link", { devotionId, userId });
 
@@ -125,12 +126,14 @@ share.post("/:id/share", async (c) => {
 share.delete("/:id/share", async (c) => {
     try {
         const devotionId = c.req.param("id");
-        const userId = c.get("userId");
+        const user = c.get("user");
         const supabaseClient = c.get("supabase");
 
-        if (!userId) {
+        if (!user || !user.id) {
             return c.json({ error: "Unauthorized" }, 401);
         }
+
+        const userId = user.id;
 
         logger.info("Revoking share link", { devotionId, userId });
 

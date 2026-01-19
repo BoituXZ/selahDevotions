@@ -169,7 +169,7 @@ export default function Profile() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors duration-200 group"
                         >
-                            <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-lg text-white">
+                            <div className="bg-stone-700 dark:bg-stone-600 p-2 rounded-lg text-white">
                                 <Globe size={20} />
                             </div>
                             <div className="flex-1">
