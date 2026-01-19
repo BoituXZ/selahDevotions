@@ -64,9 +64,7 @@ export default function Profile() {
     if (!user) return null;
 
     // Extract user name from profile or default
-    const userName = profileLoading
-        ? "..."
-        : (profile?.full_name || "Friend");
+    const userName = profileLoading ? "..." : profile?.full_name || "Friend";
     const memberSince = new Date(user.created_at).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
@@ -90,7 +88,9 @@ export default function Profile() {
                     <h1 className="text-3xl font-serif text-stone-800 dark:text-stone-100 mb-1 capitalize">
                         {userName}
                     </h1>
-                    <p className="text-stone-500 dark:text-stone-400">{user.email}</p>
+                    <p className="text-stone-500 dark:text-stone-400">
+                        {user.email}
+                    </p>
                 </div>
 
                 {/* Stats Cards */}
@@ -210,7 +210,9 @@ export default function Profile() {
                                 <Mail size={20} />
                             </div>
                             <div className="flex-1">
-                                <p className="text-sm text-stone-500 dark:text-stone-400">Email</p>
+                                <p className="text-sm text-stone-500 dark:text-stone-400">
+                                    Email
+                                </p>
                                 <p className="text-stone-800 dark:text-stone-200 font-medium group-hover:text-stone-600 dark:group-hover:text-stone-300">
                                     boituu.xz@gmail.com
                                 </p>
@@ -246,7 +248,7 @@ export default function Profile() {
                     {/* Footer Version */}
                     <div className="text-center">
                         <p className="text-xs text-stone-400 dark:text-stone-500">
-                            Selah App v1.0.0
+                            Selah App v1.1.0
                         </p>
                     </div>
                 </div>
