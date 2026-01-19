@@ -8,6 +8,10 @@ export interface Devotion {
     scripture_ref?: string;
     mood?: string;
     created_at: string;
+    share_token?: string | null;
+    encrypted_shared_content?: string | null;
+    is_shared?: boolean;
+    shared_at?: string | null;
 }
 
 export interface UserEncryptionKey {

@@ -15,6 +15,7 @@ const Devotions = lazy(() => import("./pages/Devotions"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Profile = lazy(() => import("./pages/Profile"));
 const DevotionDetail = lazy(() => import("./pages/DevotionDetail"));
+const PublicDevotionPage = lazy(() => import("./pages/PublicDevotionPage"));
 
 function ProtectedLayout() {
     const { user } = useAuth();
@@ -49,6 +50,10 @@ export default function App() {
                         {/* Public Routes */}
                         <Route path="/" element={<Landing />} />
                         <Route path="/auth" element={<Auth />} />
+                        <Route
+                            path="/share/:token"
+                            element={<PublicDevotionPage />}
+                        />
 
                         {/* Legacy Redirects */}
                         <Route

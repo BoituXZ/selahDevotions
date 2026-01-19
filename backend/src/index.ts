@@ -29,6 +29,8 @@ try {
     const streaks = require("./routes/streaks").default;
     const chat = require("./routes/chat").default;
     const preferences = require("./routes/preferences").default;
+    const share = require("./routes/share").default;
+    const publicRoutes = require("./routes/public").default;
 
     console.log("✅ Environment valid. Mounting full application...");
 
@@ -43,7 +45,7 @@ try {
             },
             crossOriginEmbedderPolicy: false,
             crossOriginResourcePolicy: "cross-origin",
-        })
+        }),
     );
 
     // --- STRICT CORS (The Doorman) ---
@@ -70,12 +72,16 @@ try {
             allowHeaders: ["Content-Type", "Authorization"],
             allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             credentials: true,
-        })
+        }),
     );
+
+    // --- Public Routes (MUST be before auth middleware) ---
+    app.route("/public", publicRoutes);
 
     // --- Protected Routes ---
     app.use("/api/*", authMiddleware);
     app.route("/api/devotions", devotions);
+    app.route("/api/devotions", share); // Share routes under /api/devotions/:id/share
     app.route("/api/streaks", streaks);
     app.route("/api/chat", chat);
     app.route("/api/preferences", preferences);

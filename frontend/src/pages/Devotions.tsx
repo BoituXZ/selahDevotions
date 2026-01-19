@@ -20,8 +20,10 @@ const Devotions = () => {
             const response = await api.get<Devotion[]>("/api/devotions");
             if (response) {
                 // Sort by date desc
-                const sorted = response.sort((a, b) => 
-                    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                const sorted = response.sort(
+                    (a, b) =>
+                        new Date(b.created_at).getTime() -
+                        new Date(a.created_at).getTime(),
                 );
                 setDevotions(sorted);
             }
@@ -39,9 +41,8 @@ const Devotions = () => {
     useEffect(() => {
         const checkEncryptionNotice = async () => {
             try {
-                const prefs = await api.get<UserPreferences>(
-                    "/api/preferences"
-                );
+                const prefs =
+                    await api.get<UserPreferences>("/api/preferences");
                 if (!prefs.has_seen_encryption_notice) {
                     setShowEncryptionNotice(true);
                 }
@@ -83,9 +84,11 @@ const Devotions = () => {
                 )}
 
                 {/* Grid List */}
-                <div className="min-h-[200px]">
+                <div className="min-h-50">
                     {loading ? (
-                        <div className="text-stone-400 dark:text-stone-500 text-center py-12">Loading sanctuary...</div>
+                        <div className="text-stone-400 dark:text-stone-500 text-center py-12">
+                            Loading sanctuary...
+                        </div>
                     ) : devotions.length === 0 ? (
                         <div className="text-center py-20 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 border-dashed">
                             <p className="text-stone-400 dark:text-stone-500 italic mb-4 font-serif text-xl">
@@ -104,6 +107,7 @@ const Devotions = () => {
                                     onClick={() =>
                                         navigate(`/devotions/${devotion.id}`)
                                     }
+                                    onShareStatusChange={fetchDevotions}
                                 />
                             ))}
                         </div>

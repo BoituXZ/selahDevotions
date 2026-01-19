@@ -1,4 +1,9 @@
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "crypto";
+import {
+    createCipheriv,
+    createDecipheriv,
+    randomBytes,
+    scryptSync,
+} from "crypto";
 import { env } from "../lib/env";
 import { logger } from "../lib/logger";
 
@@ -22,7 +27,7 @@ function getMasterKey(): Buffer {
     // Derive key from passphrase using scrypt
     const salt = Buffer.from(
         env.ENCRYPTION_SALT || "selah-encryption-v1",
-        "utf-8"
+        "utf-8",
     );
     masterKey = scryptSync(masterKeyEnv, salt, KEY_LENGTH);
 
@@ -67,7 +72,7 @@ function decryptWithMasterKey(encryptedData: string): Buffer {
     const authTag = combined.subarray(combined.length - AUTH_TAG_LENGTH);
     const encrypted = combined.subarray(
         IV_LENGTH,
-        combined.length - AUTH_TAG_LENGTH
+        combined.length - AUTH_TAG_LENGTH,
     );
 
     const decipher = createDecipheriv(ALGORITHM, getMasterKey(), iv);
@@ -84,7 +89,7 @@ function decryptWithMasterKey(encryptedData: string): Buffer {
  */
 export function encryptContent(
     content: string,
-    userEncryptedKey: string
+    userEncryptedKey: string,
 ): string {
     try {
         // Decrypt the user's key using master key
@@ -125,7 +130,7 @@ export function encryptContent(
  */
 export function decryptContent(
     encryptedContent: string,
-    userEncryptedKey: string
+    userEncryptedKey: string,
 ): string {
     try {
         // Decrypt the user's key using master key
@@ -138,7 +143,7 @@ export function decryptContent(
         const authTag = combined.subarray(combined.length - AUTH_TAG_LENGTH);
         const encrypted = combined.subarray(
             IV_LENGTH,
-            combined.length - AUTH_TAG_LENGTH
+            combined.length - AUTH_TAG_LENGTH,
         );
 
         // Decrypt
@@ -159,5 +164,98 @@ export function decryptContent(
     } catch (error) {
         logger.error("Content decryption failed", error as Error);
         throw new Error("Failed to decrypt content");
+    }
+}
+
+/**
+ * Generate a random encryption key for share links
+ * Returns the raw key (to be included in share URL hash)
+ */
+export function generateShareKey(): string {
+    const key = randomBytes(KEY_LENGTH);
+    return key.toString("base64");
+}
+
+/**
+ * Encrypt content for sharing with a share-specific key
+ * @param content - Plain text content
+ * @param shareKeyBase64 - Base64-encoded share key
+ * @returns Base64-encoded encrypted content (IV + encrypted + tag)
+ */
+export function encryptForSharing(
+    content: string,
+    shareKeyBase64: string,
+): string {
+    try {
+        const shareKey = Buffer.from(shareKeyBase64, "base64");
+
+        // Generate random IV for this content
+        const iv = randomBytes(IV_LENGTH);
+
+        // Encrypt the content
+        const cipher = createCipheriv(ALGORITHM, shareKey, iv);
+        const contentBuffer = Buffer.from(content, "utf-8");
+        const encrypted = Buffer.concat([
+            cipher.update(contentBuffer),
+            cipher.final(),
+        ]);
+        const authTag = cipher.getAuthTag();
+
+        // Combine: IV + encrypted + tag
+        const combined = Buffer.concat([iv, encrypted, authTag]);
+
+        logger.debug("Content encrypted for sharing", {
+            originalLength: content.length,
+            encryptedLength: combined.length,
+        });
+
+        return combined.toString("base64");
+    } catch (error) {
+        logger.error("Share encryption failed", error as Error);
+        throw new Error("Failed to encrypt content for sharing");
+    }
+}
+
+/**
+ * Decrypt shared content with share key (client-side compatible)
+ * @param encryptedContent - Base64-encoded encrypted content
+ * @param shareKeyBase64 - Base64-encoded share key
+ * @returns Plain text content
+ */
+export function decryptSharedContent(
+    encryptedContent: string,
+    shareKeyBase64: string,
+): string {
+    try {
+        const shareKey = Buffer.from(shareKeyBase64, "base64");
+
+        // Parse the encrypted content
+        const combined = Buffer.from(encryptedContent, "base64");
+
+        const iv = combined.subarray(0, IV_LENGTH);
+        const authTag = combined.subarray(combined.length - AUTH_TAG_LENGTH);
+        const encrypted = combined.subarray(
+            IV_LENGTH,
+            combined.length - AUTH_TAG_LENGTH,
+        );
+
+        // Decrypt
+        const decipher = createDecipheriv(ALGORITHM, shareKey, iv);
+        decipher.setAuthTag(authTag);
+
+        const decrypted = Buffer.concat([
+            decipher.update(encrypted),
+            decipher.final(),
+        ]);
+
+        logger.debug("Shared content decrypted successfully", {
+            encryptedLength: combined.length,
+            decryptedLength: decrypted.length,
+        });
+
+        return decrypted.toString("utf-8");
+    } catch (error) {
+        logger.error("Share decryption failed", error as Error);
+        throw new Error("Failed to decrypt shared content");
     }
 }
