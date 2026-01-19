@@ -237,9 +237,8 @@ export default function PublicDevotionPage() {
                             Create Your Own Spiritual Journey
                         </h2>
                         <p className="text-stone-600 dark:text-stone-400 max-w-2xl mx-auto">
-                            Join thousands using Selah to deepen their faith
-                            through AI-guided devotional conversations, daily
-                            reflections, and meaningful scripture exploration.
+                            Join others using Selah to jot down their daily
+                            devotions and meaningful scripture exploration.
                         </p>
                     </div>
                     <Link

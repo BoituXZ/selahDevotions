@@ -49,12 +49,26 @@ const renderApp = () => {
                             <App />
 
                             {/* Vercel tracks the PERFORMANCE */}
-                            <Analytics />
+                            <Analytics
+                                beforeSend={(event) => {
+                                    // Normalize dynamic routes for cleaner analytics grouping
+                                    const url = event.url
+                                        .replace(
+                                            /\/devotions\/[a-f0-9-]+/gi,
+                                            "/devotions/[id]",
+                                        )
+                                        .replace(
+                                            /\/share\/[a-f0-9-]+/gi,
+                                            "/share/[token]",
+                                        );
+                                    return { ...event, url };
+                                }}
+                            />
                         </ThemeProvider>
                     </AuthProvider>
                 </PostHogErrorBoundary>
             </ErrorBoundary>
-        </React.StrictMode>
+        </React.StrictMode>,
     );
 };
 
