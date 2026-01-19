@@ -1,26 +1,12 @@
-import { useState } from "react";
-import { Share2, Globe } from "lucide-react";
-import { toast } from "sonner";
+import { Globe } from "lucide-react";
 import type { Devotion } from "../types/types";
-import { api } from "../api";
-import ShareModal from "./ShareModal";
 
 interface DevotionCardProps {
     devotion: Devotion;
     onClick: () => void;
-    onShareStatusChange?: () => void;
 }
 
-export default function DevotionCard({
-    devotion,
-    onClick,
-    onShareStatusChange,
-}: DevotionCardProps) {
-    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-    const [shareUrl, setShareUrl] = useState("");
-    const [isSharing, setIsSharing] = useState(false);
-    const [isRevoking, setIsRevoking] = useState(false);
-
+export default function DevotionCard({ devotion, onClick }: DevotionCardProps) {
     const plainText = devotion.content.replace(/<[^>]*>?/gm, "");
 
     // Deterministic color based on ID
@@ -34,54 +20,6 @@ export default function DevotionCard({
     const colorIndex =
         parseInt(devotion.id.substring(0, 8), 16) % colors.length;
     const colorClass = colors[colorIndex];
-
-    const handleShare = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-
-        if (devotion.is_shared && devotion.share_token) {
-            // Already shared, just show the modal with existing link
-            const url = `${window.location.origin}/share/${devotion.share_token}`;
-            setShareUrl(url);
-            setIsShareModalOpen(true);
-            return;
-        }
-
-        // Generate new share link
-        setIsSharing(true);
-        try {
-            const response = await api.post<{
-                shareToken: string;
-                shareKey: string;
-                message: string;
-            }>(`/api/devotions/${devotion.id}/share`, {});
-
-            const url = `${window.location.origin}/share/${response.shareToken}#${response.shareKey}`;
-            setShareUrl(url);
-            setIsShareModalOpen(true);
-            toast.success("Share link created!");
-            onShareStatusChange?.();
-        } catch (error) {
-            console.error("Failed to create share link:", error);
-            toast.error("Failed to create share link");
-        } finally {
-            setIsSharing(false);
-        }
-    };
-
-    const handleRevoke = async () => {
-        setIsRevoking(true);
-        try {
-            await api.delete(`/api/devotions/${devotion.id}/share`);
-            toast.success("Share link revoked");
-            setIsShareModalOpen(false);
-            onShareStatusChange?.();
-        } catch (error) {
-            console.error("Failed to revoke share link:", error);
-            toast.error("Failed to revoke share link");
-        } finally {
-            setIsRevoking(false);
-        }
-    };
 
     return (
         <div
@@ -111,31 +49,11 @@ export default function DevotionCard({
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
-                        {devotion.mood && (
-                            <span className="text-[10px] tracking-wider uppercase border border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 px-2 py-0.5 rounded-full">
-                                {devotion.mood}
-                            </span>
-                        )}
-                        <button
-                            onClick={handleShare}
-                            disabled={isSharing}
-                            className="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300"
-                            title={
-                                devotion.is_shared
-                                    ? "View share link"
-                                    : "Share this devotion"
-                            }
-                        >
-                            {isSharing ? (
-                                <div className="w-4 h-4 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin" />
-                            ) : (
-                                <Share2
-                                    className={`w-4 h-4 ${devotion.is_shared ? "text-green-600 dark:text-green-400" : ""}`}
-                                />
-                            )}
-                        </button>
-                    </div>
+                    {devotion.mood && (
+                        <span className="text-[10px] tracking-wider uppercase border border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 px-2 py-0.5 rounded-full">
+                            {devotion.mood}
+                        </span>
+                    )}
                 </div>
 
                 {/* Content Preview */}
@@ -154,17 +72,6 @@ export default function DevotionCard({
                     </p>
                 </div>
             </div>
-
-            {/* Share Modal */}
-            {isShareModalOpen && shareUrl && (
-                <ShareModal
-                    isOpen={isShareModalOpen}
-                    onClose={() => setIsShareModalOpen(false)}
-                    shareUrl={shareUrl}
-                    onRevoke={handleRevoke}
-                    isRevoking={isRevoking}
-                />
-            )}
         </div>
     );
 }

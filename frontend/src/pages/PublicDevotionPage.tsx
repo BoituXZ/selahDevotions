@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import {
-    BookOpen,
-    Calendar,
-    Smile,
-    Lock,
-    Home,
-    AlertCircle,
-} from "lucide-react";
+import { BookOpen, Calendar, Smile, Home, AlertCircle } from "lucide-react";
 
 import type { SharedDevotion } from "../types/types";
 import {
@@ -137,10 +130,9 @@ export default function PublicDevotionPage() {
             <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
                 <div className="text-center space-y-4">
                     <div className="w-12 h-12 border-4 border-stone-300 dark:border-stone-700 border-t-stone-700 dark:border-t-stone-300 rounded-full animate-spin mx-auto" />
-                    <div className="flex items-center gap-2 text-stone-600 dark:text-stone-400">
-                        <Lock className="w-4 h-4" />
-                        <p>Decrypting content...</p>
-                    </div>
+                    <p className="text-stone-600 dark:text-stone-400">
+                        Preparing devotion...
+                    </p>
                 </div>
             </div>
         );
@@ -234,19 +226,6 @@ export default function PublicDevotionPage() {
                                     {devotion.author.full_name}
                                 </span>
                             </p>
-                        </div>
-
-                        {/* Encrypted badge */}
-                        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                            <div className="flex items-center gap-3">
-                                <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
-                                <p className="text-sm text-blue-900 dark:text-blue-100">
-                                    This devotion was securely shared using
-                                    end-to-end encryption. The content was
-                                    decrypted in your browser using the key
-                                    provided in the share link.
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </div>
