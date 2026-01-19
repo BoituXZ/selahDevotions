@@ -29,6 +29,7 @@ export default function DevotionDetail() {
     const [isSharing, setIsSharing] = useState(false);
     const [isRevoking, setIsRevoking] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [isNewShare, setIsNewShare] = useState(false);
 
     const fetchDevotion = () => {
         if (!id) return;
@@ -57,6 +58,7 @@ export default function DevotionDetail() {
             // Already shared, just show the modal with existing link
             const url = `${window.location.origin}/share/${devotion.share_token}`;
             setShareUrl(url);
+            setIsNewShare(false);
             setShowShareModal(true);
             return;
         }
@@ -72,6 +74,7 @@ export default function DevotionDetail() {
 
             const url = `${window.location.origin}/share/${response.shareToken}#${response.shareKey}`;
             setShareUrl(url);
+            setIsNewShare(true);
             setShowShareModal(true);
             toast.success("Share link created!");
             fetchDevotion(); // Refresh to update share status
@@ -236,10 +239,14 @@ export default function DevotionDetail() {
                 {showShareModal && shareUrl && (
                     <ShareModal
                         isOpen={showShareModal}
-                        onClose={() => setShowShareModal(false)}
+                        onClose={() => {
+                            setShowShareModal(false);
+                            setIsNewShare(false);
+                        }}
                         shareUrl={shareUrl}
                         onRevoke={handleRevoke}
                         isRevoking={isRevoking}
+                        isNewShare={isNewShare}
                     />
                 )}
             </div>

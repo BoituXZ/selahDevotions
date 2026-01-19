@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Copy, Check, Lock, Globe } from "lucide-react";
+import { X, Copy, Check, Lock, Globe, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 interface ShareModalProps {
@@ -8,6 +8,7 @@ interface ShareModalProps {
     shareUrl: string;
     onRevoke: () => void;
     isRevoking: boolean;
+    isNewShare?: boolean;
 }
 
 export default function ShareModal({
@@ -16,6 +17,7 @@ export default function ShareModal({
     shareUrl,
     onRevoke,
     isRevoking,
+    isNewShare = false,
 }: ShareModalProps) {
     const [copied, setCopied] = useState(false);
 
@@ -79,6 +81,26 @@ export default function ShareModal({
                             </div>
                         </div>
                     </div>
+
+                    {isNewShare && (
+                        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+                                <div className="text-sm text-amber-900 dark:text-amber-100">
+                                    <p className="font-medium mb-1">
+                                        Copy this link now
+                                    </p>
+                                    <p className="text-amber-800 dark:text-amber-200">
+                                        This is your only chance to view the
+                                        complete link with the encryption key.
+                                        If you close this without copying,
+                                        you'll need to revoke and create a new
+                                        one.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
