@@ -107,7 +107,6 @@ const Devotions = () => {
                                     onClick={() =>
                                         navigate(`/devotions/${devotion.id}`)
                                     }
-                                    onShareStatusChange={fetchDevotions}
                                 />
                             ))}
                         </div>
