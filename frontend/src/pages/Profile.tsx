@@ -5,10 +5,11 @@ import {
     BookHeart,
     Flame,
     LogOut,
-    Instagram,
+    Globe,
     Linkedin,
     Mail,
     Turntable,
+    MessageCircle,
 } from "lucide-react";
 import { supabase } from "../auth/supabase";
 import { useAuth } from "../AuthProvider";
@@ -161,22 +162,22 @@ export default function Profile() {
 
                     {/* Social Links */}
                     <div className="space-y-3 mb-6">
-                        {/* Instagram */}
+                        {/* Website */}
                         <a
-                            href="https://instagram.com/b0ituu"
+                            href="https://boitumelo.me/"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors duration-200 group"
                         >
-                            <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-2 rounded-lg text-white">
-                                <Instagram size={20} />
+                            <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-lg text-white">
+                                <Globe size={20} />
                             </div>
                             <div className="flex-1">
                                 <p className="text-sm text-stone-500 dark:text-stone-400">
-                                    Instagram
+                                    Website
                                 </p>
                                 <p className="text-stone-800 dark:text-stone-200 font-medium group-hover:text-stone-600 dark:group-hover:text-stone-300">
-                                    @b0ituu
+                                    boitumelo.me
                                 </p>
                             </div>
                         </a>
@@ -218,6 +219,28 @@ export default function Profile() {
                                 </p>
                             </div>
                         </a>
+
+                        {/* WhatsApp */}
+                        <a
+                            href="https://wa.me/27672178866"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors duration-200 group"
+                        >
+                            <div className="bg-[#25D366] p-2 rounded-lg text-white">
+                                <MessageCircle size={20} />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm text-stone-500 dark:text-stone-400">
+                                    WhatsApp
+                                </p>
+                                <p className="text-stone-800 dark:text-stone-200 font-medium group-hover:text-stone-600 dark:group-hover:text-stone-300">
+                                    +27 67 217 8866
+                                </p>
+                            </div>
+                        </a>
+
+                        {/* Spotify */}
                         <a
                             href="https://open.spotify.com/playlist/7HKpLTkiJYRKGQs6ZJypzr?si=51660fdc4341448d"
                             target="_blank"
