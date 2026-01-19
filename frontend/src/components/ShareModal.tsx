@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Copy, Check, Lock, Globe, AlertTriangle } from "lucide-react";
+import { X, Copy, Check, Globe, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 interface ShareModalProps {
@@ -65,23 +65,6 @@ export default function ShareModal({
 
                 {/* Body */}
                 <div className="p-6 space-y-4">
-                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                        <div className="flex items-start gap-3">
-                            <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-                            <div className="text-sm text-blue-900 dark:text-blue-100">
-                                <p className="font-medium mb-1">
-                                    End-to-end encrypted sharing
-                                </p>
-                                <p className="text-blue-700 dark:text-blue-300">
-                                    The encryption key is included in the URL
-                                    (after the #). Your devotion content is
-                                    encrypted on our servers and can only be
-                                    decrypted by someone with the full link.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
                     {isNewShare && (
                         <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
                             <div className="flex items-start gap-3">
