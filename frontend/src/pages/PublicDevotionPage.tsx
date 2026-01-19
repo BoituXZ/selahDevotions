@@ -151,13 +151,10 @@ export default function PublicDevotionPage() {
                 <div className="max-w-4xl mx-auto px-4 py-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SelahLogo />
-                        <span className="text-xl font-semibold text-stone-900 dark:text-stone-50">
-                            Selah
-                        </span>
                     </div>
                     <Link
                         to="/"
-                        className="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
+                        className="px-4 py-2 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-all text-sm font-medium shadow-sm"
                     >
                         Create your own
                     </Link>
