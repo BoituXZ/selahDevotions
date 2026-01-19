@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { supabase } from "../lib/supabase";
+import { supabaseAdmin } from "../lib/supabase";
 import { logger } from "../lib/logger";
 
 const publicRoutes = new Hono();
@@ -8,6 +8,7 @@ const publicRoutes = new Hono();
  * GET /public/devotions/:token
  * Get a shared devotion by its share token
  * Public route - no authentication required
+ * Uses supabaseAdmin to bypass RLS since this is a public endpoint
  */
 publicRoutes.get("/devotions/:token", async (c) => {
     try {
@@ -15,18 +16,18 @@ publicRoutes.get("/devotions/:token", async (c) => {
 
         logger.info("Fetching shared devotion", { shareToken: token });
 
-        // Query devotion with share token and join with profiles for author name
-        const { data: devotion, error } = await supabase
+        // Query devotion with share token (using admin client to bypass RLS)
+        const { data: devotion, error } = await supabaseAdmin
             .from("devotions")
             .select(
                 `
                 id,
+                user_id,
                 encrypted_shared_content,
                 scripture_ref,
                 mood,
                 created_at,
-                shared_at,
-                profiles!inner(full_name)
+                shared_at
             `,
             )
             .eq("share_token", token)
@@ -41,6 +42,20 @@ publicRoutes.get("/devotions/:token", async (c) => {
             );
         }
 
+        // Fetch author name separately
+        let authorName = "Anonymous";
+        if (devotion.user_id) {
+            const { data: profile } = await supabaseAdmin
+                .from("profiles")
+                .select("full_name")
+                .eq("id", devotion.user_id)
+                .single();
+
+            if (profile?.full_name) {
+                authorName = profile.full_name;
+            }
+        }
+
         // Security: Only return safe fields, never user_id or other sensitive data
         const safeResponse = {
             id: devotion.id,
@@ -50,7 +65,7 @@ publicRoutes.get("/devotions/:token", async (c) => {
             created_at: devotion.created_at,
             shared_at: devotion.shared_at,
             author: {
-                full_name: (devotion.profiles as any).full_name || "Anonymous",
+                full_name: authorName,
             },
         };
 
