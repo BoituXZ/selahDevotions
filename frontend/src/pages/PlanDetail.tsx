@@ -368,7 +368,7 @@ interface TimelineCardProps {
 function TimelineCard({
     timeline,
     isPast,
-    isCurrent,
+    isCurrent: _isCurrent,
     isFuture,
     onAddDevotion,
     onViewDevotion,
