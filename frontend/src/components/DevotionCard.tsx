@@ -59,7 +59,7 @@ export default function DevotionListItem({
                     </span>
                     {devotion.is_shared && (
                         <span className="text-[10px] tracking-wider uppercase text-green-600 dark:text-green-400 font-sans shrink-0 ml-2">
-                            Public ↗
+                            Public
                         </span>
                     )}
                 </div>

@@ -80,11 +80,6 @@ export default function CreateDevotionModal({
             onSuccess(); // Refresh parent
             onClose(); // Close modal
         } catch (err) {
-            alert(
-                `Failed to ${
-                    isEditMode ? "update" : "save"
-                } devotion. Please try again.`
-            );
             console.error(err);
         } finally {
             setLoading(false);
