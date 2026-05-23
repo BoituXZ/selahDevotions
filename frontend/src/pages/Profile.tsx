@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    Calendar,
-    BookHeart,
-    Flame,
-    LogOut,
     Globe,
     Linkedin,
     Mail,
     Turntable,
     MessageCircle,
+    ChevronDown,
 } from "lucide-react";
 import { supabase } from "../auth/supabase";
 import { useAuth } from "../AuthProvider";
+import {
+    useTheme,
+    type ThemePreference,
+} from "../providers/ThemeProvider";
 import { api } from "../api";
 import { toast } from "sonner";
 import UserAvatar from "../components/UserAvatar";
@@ -23,15 +24,45 @@ interface StreakData {
     longest_streak: number;
 }
 
+// Smooth count-up animation hook
+function useCountUp(target: number, active: boolean, duration = 900) {
+    const [count, setCount] = useState(0);
+    useEffect(() => {
+        if (!active) return;
+        if (target === 0) {
+            setCount(0);
+            return;
+        }
+        const startTime = performance.now();
+        const tick = (now: number) => {
+            const progress = Math.min((now - startTime) / duration, 1);
+            // Cubic ease-out
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(eased * target));
+            if (progress < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+    }, [target, active, duration]);
+    return count;
+}
+
+const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+    { value: "light", label: "Light" },
+    { value: "system", label: "System" },
+    { value: "dark", label: "Dark" },
+];
+
 export default function Profile() {
     const { user, profile, profileLoading } = useAuth();
+    const { preference, setPreference } = useTheme();
     const navigate = useNavigate();
-    const [devotionsCount, setDevotionsCount] = useState<number>(0);
+    const [devotionsCount, setDevotionsCount] = useState(0);
     const [streak, setStreak] = useState<StreakData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [statsVisible, setStatsVisible] = useState(false);
+    const [aboutExpanded, setAboutExpanded] = useState(false);
 
     useEffect(() => {
-        // Fetch user stats
         Promise.all([
             api.get<Devotion[]>("/api/devotions"),
             api.get<StreakData>("/api/streaks"),
@@ -39,9 +70,14 @@ export default function Profile() {
             .then(([devotions, streakData]) => {
                 setDevotionsCount(devotions.length);
                 setStreak(streakData);
+                setLoading(false);
+                // Small delay so the entrance animation is visible before counting starts
+                setTimeout(() => setStatsVisible(true), 200);
             })
-            .catch((err) => console.error("Failed to fetch stats:", err))
-            .finally(() => setLoading(false));
+            .catch((err) => {
+                console.error("Failed to fetch stats:", err);
+                setLoading(false);
+            });
     }, []);
 
     const handleLogout = () => {
@@ -54,17 +90,25 @@ export default function Profile() {
                     navigate("/");
                 },
             },
-            cancel: {
-                label: "Cancel",
-                onClick: () => {},
-            },
+            cancel: { label: "Cancel", onClick: () => {} },
             duration: 5000,
         });
     };
 
+    const handleThemeChange = (pref: ThemePreference) => {
+        setPreference(pref);
+        api.post("/api/preferences/update-theme", { theme_preference: pref }).catch(
+            () => {},
+        );
+    };
+
+    // Count-up values — always called at top level (rules of hooks)
+    const countDevotions = useCountUp(devotionsCount, statsVisible);
+    const countStreak = useCountUp(streak?.current_streak ?? 0, statsVisible);
+    const countLongest = useCountUp(streak?.longest_streak ?? 0, statsVisible);
+
     if (!user) return null;
 
-    // Extract user name from profile or default
     const userName = profileLoading ? "..." : profile?.full_name || "Friend";
     const memberSince = new Date(user.created_at).toLocaleDateString("en-US", {
         month: "long",
@@ -72,228 +116,163 @@ export default function Profile() {
     });
 
     return (
-        <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-stone-950 pb-28 md:pb-12 p-4 md:p-8">
-            <div className="max-w-2xl mx-auto">
-                {/* Header Section */}
-                <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-lg p-8 mb-6 text-center animate-[scaleIn_0.5s_ease-out]">
-                    {/* Avatar */}
-                    <div className="flex justify-center mb-4">
+        <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-stone-950 pb-28 md:pb-16 p-6 md:p-12">
+            <div className="max-w-xl mx-auto space-y-6">
+
+                {/* Header — left-aligned, no card wrapper */}
+                <header className="flex items-start gap-5 animate-[fadeInUp_0.4s_ease-out] pt-2">
+                    <div className="ring-2 ring-[#A3B18A] rounded-full shrink-0">
                         <UserAvatar
                             email={user.email || ""}
                             name={userName}
-                            size="xl"
+                            size="lg"
                         />
                     </div>
-
-                    {/* User Info */}
-                    <h1 className="text-3xl font-serif text-stone-800 dark:text-stone-100 mb-1 capitalize">
-                        {userName}
-                    </h1>
-                    <p className="text-stone-500 dark:text-stone-400">
-                        {user.email}
-                    </p>
-                </div>
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    {/* Member Since Card */}
-                    <div
-                        className="bg-white dark:bg-stone-900 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0"
-                        style={{ animationDelay: "100ms" }}
-                    >
-                        <div className="flex flex-col items-center text-center">
-                            <div className="bg-stone-100 dark:bg-stone-800 p-3 rounded-full mb-3 text-stone-700 dark:text-stone-300">
-                                <Calendar size={24} />
-                            </div>
-                            <div className="text-2xl font-bold text-stone-800 dark:text-stone-100 mb-1">
-                                {loading ? "..." : memberSince}
-                            </div>
-                            <div className="text-sm text-stone-500 dark:text-stone-400">
-                                Member Since
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Total Devotions Card */}
-                    <div
-                        className="bg-white dark:bg-stone-900 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0"
-                        style={{ animationDelay: "200ms" }}
-                    >
-                        <div className="flex flex-col items-center text-center">
-                            <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-full mb-3 text-emerald-700 dark:text-emerald-400">
-                                <BookHeart size={24} />
-                            </div>
-                            <div className="text-4xl font-bold text-stone-800 dark:text-stone-100 mb-1">
-                                {loading ? "..." : devotionsCount}
-                            </div>
-                            <div className="text-sm text-stone-500 dark:text-stone-400">
-                                Total Devotions
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Current Streak Card */}
-                    <div
-                        className="bg-white dark:bg-stone-900 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0"
-                        style={{ animationDelay: "300ms" }}
-                    >
-                        <div className="flex flex-col items-center text-center">
-                            <div className="bg-orange-100 dark:bg-orange-900/30 p-3 rounded-full mb-3 text-orange-600 dark:text-orange-400">
-                                <Flame size={24} />
-                            </div>
-                            <div className="text-4xl font-bold text-stone-800 dark:text-stone-100 mb-1">
-                                {loading ? "..." : streak?.current_streak || 0}
-                            </div>
-                            <div className="text-sm text-stone-500 dark:text-stone-400">
-                                Day Streak
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Credits & Connect Card */}
-                <div
-                    className="bg-white dark:bg-stone-900 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 p-8 mb-6 animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0"
-                    style={{ animationDelay: "500ms" }}
-                >
-                    <h2 className="text-2xl font-serif text-stone-800 dark:text-stone-100 mb-6 text-center">
-                        Connect with the Creator
-                    </h2>
-
-                    {/* Social Links */}
-                    <div className="space-y-3 mb-6">
-                        {/* Website */}
-                        <a
-                            href="https://boitumelo.me/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors duration-200 group"
-                        >
-                            <div className="bg-stone-700 dark:bg-stone-600 p-2 rounded-lg text-white">
-                                <Globe size={20} />
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-sm text-stone-500 dark:text-stone-400">
-                                    Website
-                                </p>
-                                <p className="text-stone-800 dark:text-stone-200 font-medium group-hover:text-stone-600 dark:group-hover:text-stone-300">
-                                    boitumelo.me
-                                </p>
-                            </div>
-                        </a>
-
-                        {/* LinkedIn */}
-                        <a
-                            href="https://www.linkedin.com/in/boituxz/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors duration-200 group"
-                        >
-                            <div className="bg-[#0A66C2] p-2 rounded-lg text-white">
-                                <Linkedin size={20} />
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-sm text-stone-500 dark:text-stone-400">
-                                    LinkedIn
-                                </p>
-                                <p className="text-stone-800 dark:text-stone-200 font-medium group-hover:text-stone-600 dark:group-hover:text-stone-300">
-                                    Boitu
-                                </p>
-                            </div>
-                        </a>
-
-                        {/* Email */}
-                        <a
-                            href="mailto:boituu.xz@gmail.com"
-                            className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors duration-200 group"
-                        >
-                            <div className="bg-stone-700 dark:bg-stone-600 p-2 rounded-lg text-white">
-                                <Mail size={20} />
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-sm text-stone-500 dark:text-stone-400">
-                                    Email
-                                </p>
-                                <p className="text-stone-800 dark:text-stone-200 font-medium group-hover:text-stone-600 dark:group-hover:text-stone-300">
-                                    boituu.xz@gmail.com
-                                </p>
-                            </div>
-                        </a>
-
-                        {/* WhatsApp */}
-                        <a
-                            href="https://wa.me/27672178866"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors duration-200 group"
-                        >
-                            <div className="bg-[#25D366] p-2 rounded-lg text-white">
-                                <MessageCircle size={20} />
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-sm text-stone-500 dark:text-stone-400">
-                                    WhatsApp
-                                </p>
-                                <p className="text-stone-800 dark:text-stone-200 font-medium group-hover:text-stone-600 dark:group-hover:text-stone-300">
-                                    +27 67 217 8866
-                                </p>
-                            </div>
-                        </a>
-
-                        {/* Spotify */}
-                        <a
-                            href="https://open.spotify.com/playlist/7HKpLTkiJYRKGQs6ZJypzr?si=51660fdc4341448d"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-4 p-4 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors duration-200 group"
-                        >
-                            <div className="bg-[#1ed760] p-2 rounded-lg text-black">
-                                <Turntable size={20} />
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-sm text-stone-500 dark:text-stone-400">
-                                    Spotify Playlist
-                                </p>
-                                <p className="text-stone-800 dark:text-stone-200 font-medium group-hover:text-stone-600 dark:group-hover:text-stone-300">
-                                    Boitu
-                                </p>
-                            </div>
-                        </a>
-                    </div>
-
-                    {/* Quirky Note */}
-                    <div className="border-t border-stone-200 dark:border-stone-700 pt-6 mb-4">
-                        <p className="text-center text-stone-600 dark:text-stone-400 italic text-sm">
-                            "Built with code, coffee, and a lot of grace."
+                    <div className="pt-2 min-w-0">
+                        <h1 className="text-3xl font-serif text-stone-800 dark:text-stone-100 capitalize leading-tight truncate">
+                            {userName}
+                        </h1>
+                        <p className="text-sm text-stone-400 dark:text-stone-500 mt-0.5 font-sans truncate">
+                            {user.email}
+                        </p>
+                        <p className="text-xs text-stone-400 dark:text-stone-500 mt-1 font-sans">
+                            Member since {memberSince}
                         </p>
                     </div>
+                </header>
 
-                    {/* Footer Version */}
-                    <div className="text-center">
-                        <p className="text-xs text-stone-400 dark:text-stone-500">
-                            Selah App v1.1.0
-                        </p>
+                {/* Stats — horizontal 3-column with count-up */}
+                <div className="grid grid-cols-3 border border-stone-200 dark:border-stone-800 rounded-2xl overflow-hidden divide-x divide-stone-200 dark:divide-stone-800 bg-white dark:bg-stone-900 animate-[fadeInUp_0.5s_ease-out_0.1s_forwards] opacity-0">
+                    <div className="px-4 py-6 text-center">
+                        <div className="text-4xl font-serif font-light text-stone-800 dark:text-stone-100 animate-[countUp_0.4s_ease-out]">
+                            {loading ? "—" : countDevotions}
+                        </div>
+                        <div className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500 mt-2 font-sans">
+                            Entries
+                        </div>
+                    </div>
+                    <div className="px-4 py-6 text-center">
+                        <div className="text-4xl font-serif font-light text-stone-800 dark:text-stone-100 animate-[countUp_0.4s_ease-out_0.1s_both]">
+                            {loading ? "—" : countStreak}
+                        </div>
+                        <div className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500 mt-2 font-sans">
+                            Day Streak
+                        </div>
+                    </div>
+                    <div className="px-4 py-6 text-center">
+                        <div className="text-4xl font-serif font-light text-stone-800 dark:text-stone-100 animate-[countUp_0.4s_ease-out_0.2s_both]">
+                            {loading ? "—" : countLongest}
+                        </div>
+                        <div className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-500 mt-2 font-sans">
+                            Best Streak
+                        </div>
                     </div>
                 </div>
 
-                {/* Danger Zone - Logout */}
-                <div
-                    className="bg-white dark:bg-stone-900 rounded-xl shadow-sm border border-red-200 dark:border-red-900/50 p-6 animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0"
-                    style={{ animationDelay: "600ms" }}
-                >
-                    <h2 className="text-xl font-serif text-stone-800 dark:text-stone-100 mb-2">
-                        Sign Out
-                    </h2>
-                    <p className="text-stone-600 dark:text-stone-400 text-sm mb-4">
-                        You can always come back and continue your spiritual
-                        journey.
-                    </p>
+                {/* Appearance / Theme toggle */}
+                <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 px-6 py-4 animate-[fadeInUp_0.5s_ease-out_0.2s_forwards] opacity-0">
+                    <div className="flex items-center justify-between gap-4">
+                        <span className="text-sm font-sans text-stone-600 dark:text-stone-300 shrink-0">
+                            Appearance
+                        </span>
+                        <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-1">
+                            {THEME_OPTIONS.map(({ value, label }) => (
+                                <button
+                                    key={value}
+                                    onClick={() => handleThemeChange(value)}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-sans transition-all duration-150 ${
+                                        preference === value
+                                            ? "bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100 shadow-sm font-medium"
+                                            : "text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300"
+                                    }`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* About / Social — collapsible */}
+                <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden animate-[fadeInUp_0.5s_ease-out_0.3s_forwards] opacity-0">
+                    <button
+                        onClick={() => setAboutExpanded((p) => !p)}
+                        className="w-full flex items-center justify-between px-6 py-4 text-left"
+                    >
+                        <span className="text-sm font-sans text-stone-500 dark:text-stone-400">
+                            Selah v1.2.0 <br/> Built by Boitu
+                        </span>
+                        <ChevronDown
+                            size={15}
+                            strokeWidth={1.5}
+                            className={`text-stone-400 shrink-0 transition-transform duration-200 ${
+                                aboutExpanded ? "rotate-180" : ""
+                            }`}
+                        />
+                    </button>
+
+                    {aboutExpanded && (
+                        <div className="px-6 pb-6 border-t border-stone-100 dark:border-stone-800 pt-5">
+                            {/* Icon-only social links */}
+                            <div className="flex items-center gap-6 mb-5">
+                                <a
+                                    href="https://boitumelo.me/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors"
+                                    aria-label="Website"
+                                >
+                                    <Globe size={18} strokeWidth={1.5} />
+                                </a>
+                                <a
+                                    href="https://www.linkedin.com/in/boituxz/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors"
+                                    aria-label="LinkedIn"
+                                >
+                                    <Linkedin size={18} strokeWidth={1.5} />
+                                </a>
+                                <a
+                                    href="mailto:boituu.xz@gmail.com"
+                                    className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors"
+                                    aria-label="Email"
+                                >
+                                    <Mail size={18} strokeWidth={1.5} />
+                                </a>
+                                <a
+                                    href="https://wa.me/27672178866"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors"
+                                    aria-label="WhatsApp"
+                                >
+                                    <MessageCircle size={18} strokeWidth={1.5} />
+                                </a>
+                                <a
+                                    href="https://open.spotify.com/playlist/7HKpLTkiJYRKGQs6ZJypzr?si=51660fdc4341448d"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors"
+                                    aria-label="Spotify"
+                                >
+                                    <Turntable size={18} strokeWidth={1.5} />
+                                </a>
+                            </div>
+                            <p className="text-xs text-stone-400 dark:text-stone-500 italic font-sans">
+                                "Built with code, coffee, and a lot of grace."
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Sign out — understated text link */}
+                <div className="text-center py-2 animate-[fadeInUp_0.5s_ease-out_0.4s_forwards] opacity-0">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 duration-200"
+                        className="text-sm font-sans text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 transition-colors"
                     >
-                        <LogOut size={18} />
-                        Sign Out
+                        Sign out
                     </button>
                 </div>
             </div>

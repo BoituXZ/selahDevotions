@@ -5,6 +5,9 @@ interface DeleteConfirmationModalProps {
     onClose: () => void;
     onConfirm: () => void;
     loading?: boolean;
+    title?: string;
+    message?: string;
+    confirmLabel?: string;
 }
 
 export default function DeleteConfirmationModal({
@@ -12,6 +15,9 @@ export default function DeleteConfirmationModal({
     onClose,
     onConfirm,
     loading = false,
+    title = "Delete Entry",
+    message = "Are you sure you want to delete this devotion entry? This action cannot be undone and your reflection will be permanently removed.",
+    confirmLabel = "Delete Entry",
 }: DeleteConfirmationModalProps) {
     if (!isOpen) return null;
 
@@ -21,7 +27,7 @@ export default function DeleteConfirmationModal({
             {/* Modal Content */}
             <div className="bg-white dark:bg-stone-900 w-full max-w-md rounded-2xl shadow-2xl flex flex-col">
                 {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b border-stone-100 dark:border-stone-800">
+                <div className="flex justify-between items-center px-6 py-5 border-b border-stone-100 dark:border-stone-800">
                     <div className="flex items-center gap-3">
                         <div className="bg-orange-100 dark:bg-orange-900/30 p-2 rounded-full">
                             <AlertTriangle
@@ -30,7 +36,7 @@ export default function DeleteConfirmationModal({
                             />
                         </div>
                         <h2 className="text-xl font-serif text-stone-800 dark:text-stone-100">
-                            Delete Entry
+                            {title}
                         </h2>
                     </div>
                     <button
@@ -43,30 +49,28 @@ export default function DeleteConfirmationModal({
                 </div>
 
                 {/* Body */}
-                <div className="p-6">
+                <div className="px-6 py-5">
                     <p className="text-stone-600 dark:text-stone-400 leading-relaxed">
-                        Are you sure you want to delete this devotion entry?
-                        This action cannot be undone and your reflection will be
-                        permanently removed.
+                        {message}
                     </p>
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-stone-100 dark:border-stone-800 flex justify-end gap-3 bg-stone-50/50 dark:bg-stone-800/50 rounded-b-2xl">
+                <div className="px-6 py-5 border-t border-stone-100 dark:border-stone-800 flex justify-end gap-3 bg-stone-50/50 dark:bg-stone-800/50 rounded-b-2xl">
                     <button
                         type="button"
                         onClick={onClose}
                         disabled={loading}
-                        className="px-5 py-2.5 text-stone-600 dark:text-stone-300 font-medium hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-3 text-stone-600 dark:text-stone-300 font-medium hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={onConfirm}
                         disabled={loading}
-                        className="px-6 py-2.5 bg-red-600 dark:bg-red-700 text-white font-medium rounded-lg hover:bg-red-700 dark:hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-red-600/20 dark:shadow-red-900/30"
+                        className="px-7 py-3 bg-red-600 dark:bg-red-700 text-white font-medium rounded-lg hover:bg-red-700 dark:hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-red-600/20 dark:shadow-red-900/30"
                     >
-                        {loading ? "Deleting..." : "Delete Entry"}
+                        {loading ? "Deleting..." : confirmLabel}
                     </button>
                 </div>
             </div>

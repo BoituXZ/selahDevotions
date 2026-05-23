@@ -22,6 +22,8 @@ const createDevotionSchema = z.object({
     content: z.string().min(1, "Content cannot be empty").max(5000),
     scripture_ref: z.string().optional(),
     mood: z.string().max(50).optional(),
+    // Optional: link this devotion to a specific day in a plan
+    plan_timeline_id: z.string().uuid().optional(),
 });
 
 devotions.post(
@@ -50,6 +52,39 @@ devotions.post(
         const cleanMood = body.mood
             ? sanitizeHtml(body.mood, { allowedTags: [] })
             : null;
+
+        // 4b. If plan_timeline_id is provided, validate ownership before doing any work
+        if (body.plan_timeline_id) {
+            const { data: timeline, error: tlError } = await supabase
+                .from("plan_timelines")
+                .select("id, devotion_id, plan_id")
+                .eq("id", body.plan_timeline_id)
+                .single();
+
+            if (tlError || !timeline) {
+                return c.json({ error: "Plan day not found" }, 404);
+            }
+
+            // Verify the parent plan belongs to this user
+            const { data: planCheck, error: planErr } = await supabase
+                .from("plans")
+                .select("id")
+                .eq("id", (timeline as any).plan_id)
+                .eq("user_id", user.id)
+                .single();
+
+            if (planErr || !planCheck) {
+                return c.json({ error: "Forbidden" }, 403);
+            }
+
+            // Guard against re-completing an already-completed day
+            if ((timeline as any).devotion_id) {
+                return c.json(
+                    { error: "This day has already been completed" },
+                    409
+                );
+            }
+        }
 
         try {
             // 5. Get or create user's encryption key
@@ -80,9 +115,37 @@ devotions.post(
                 return c.json({ error: error.message }, 500);
             }
 
+            // 7b. Link devotion to plan timeline and mark the day as read
+            if (body.plan_timeline_id) {
+                const { error: linkError } = await supabase
+                    .from("plan_timelines")
+                    .update({ devotion_id: data.id, read: true })
+                    .eq("id", body.plan_timeline_id);
+
+                if (linkError) {
+                    logger.error(
+                        "Failed to link devotion to plan timeline",
+                        linkError,
+                        {
+                            userId: user.id,
+                            devotionId: data.id,
+                            planTimelineId: body.plan_timeline_id,
+                        }
+                    );
+                    // Devotion was saved — don't fail the whole request; frontend can retry
+                } else {
+                    logger.info("Devotion linked to plan timeline", {
+                        userId: user.id,
+                        devotionId: data.id,
+                        planTimelineId: body.plan_timeline_id,
+                    });
+                }
+            }
+
             logger.info("Encrypted devotion created successfully", {
                 userId: user.id,
                 devotionId: data.id,
+                linkedToPlan: !!body.plan_timeline_id,
             });
 
             // 8. Decrypt before returning to client

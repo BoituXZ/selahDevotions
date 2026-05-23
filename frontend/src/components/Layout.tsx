@@ -2,61 +2,20 @@ import { Outlet, NavLink } from "react-router-dom";
 import {
     LayoutDashboard,
     BookHeart,
+    Scroll,
     MessageCircle,
     User,
-    Hamburger,
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+
+const navItems = [
+    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+    { name: "Devotions", path: "/devotions", icon: BookHeart },
+    { name: "Plans", path: "/plans", icon: Scroll },
+    { name: "Chat", path: "/chat", icon: MessageCircle },
+    { name: "Profile", path: "/profile", icon: User },
+] as const;
 
 export default function Layout() {
-    const [isMobileNavExpanded, setIsMobileNavExpanded] = useState(true);
-    const timeoutRef = useRef<number | null>(null);
-
-    const navItems = [
-        { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-        { name: "Devotions", path: "/devotions", icon: BookHeart },
-        { name: "Chat", path: "/chat", icon: MessageCircle },
-        { name: "Profile", path: "/profile", icon: User },
-    ];
-
-    // Reset the inactivity timer for mobile nav
-    const resetMobileTimer = () => {
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-        setIsMobileNavExpanded(true);
-        timeoutRef.current = setTimeout(() => {
-            setIsMobileNavExpanded(false);
-        }, 2000); // 5 seconds of inactivity
-    };
-
-    // Initialize timer on mount
-    useEffect(() => {
-        resetMobileTimer();
-        return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-        };
-    }, []);
-
-    const toggleMobileNav = () => {
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-        setIsMobileNavExpanded(!isMobileNavExpanded);
-        if (!isMobileNavExpanded) {
-            // If expanding, start the timer
-            timeoutRef.current = setTimeout(() => {
-                setIsMobileNavExpanded(false);
-            }, 2000);
-        }
-    };
-
-    const handleMobileNavInteraction = () => {
-        resetMobileTimer();
-    };
-
     return (
         <div className="h-screen w-full bg-stone-50 dark:bg-stone-950 flex flex-col md:flex-row overflow-hidden">
             {/* --- DESKTOP SIDEBAR --- */}
@@ -73,10 +32,10 @@ export default function Layout() {
                             key={item.path}
                             to={item.path}
                             className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
+                flex items-center gap-3 px-4 py-3.5 rounded-lg transition-all duration-200
                 ${
                     isActive
-                        ? "bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 shadow-md"
+                        ? "bg-[#3B4737] dark:bg-[#E6E0D4] text-white dark:text-[#3B4737] shadow-md"
                         : "text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100"
                 }
               `}
@@ -89,55 +48,54 @@ export default function Layout() {
             </aside>
 
             {/* --- MAIN CONTENT AREA --- */}
-            {/* We make this flex-1 and overflow-hidden so the children pages can decide how to scroll */}
             <main className="flex-1 relative flex flex-col overflow-hidden">
                 <Outlet />
             </main>
 
             {/* --- MOBILE BOTTOM NAV --- */}
-            {isMobileNavExpanded ? (
-                <nav
-                    className="md:hidden fixed bottom-4 left-4 right-4 bg-[#1c1917]/90 backdrop-blur-md border border-stone-800 p-2 rounded-2xl flex justify-around z-50 shadow-2xl shadow-stone-900/30 transition-all duration-300"
-                    onClick={handleMobileNavInteraction}
-                    onTouchStart={handleMobileNavInteraction}
-                >
-                    {navItems.map((item) => (
-                        <NavLink
-                            key={item.path}
-                            to={item.path}
-                            className={({ isActive }) => `
-              flex flex-col items-center gap-1 transition-colors p-2 rounded-xl
-              ${isActive ? "text-white bg-white/10" : "text-stone-400"}
-            `}
-                        >
-                            {/* Use a function here to access 'isActive' for the Icon properties
-                             */}
-                            {({ isActive }) => (
-                                <>
-                                    <item.icon size={22} strokeWidth={1.5} />
-                                    {isActive && (
-                                        <span className="text-[10px] font-medium font-serif">
-                                            {item.name}
-                                        </span>
-                                    )}
-                                </>
-                            )}
-                        </NavLink>
-                    ))}
-                </nav>
-            ) : (
-                <button
-                    onClick={toggleMobileNav}
-                    className="md:hidden fixed bottom-4 right-4 w-14 h-14 bg-[#1c1917]/90 backdrop-blur-md border border-stone-800 rounded-full flex items-center justify-center z-50 shadow-2xl shadow-stone-900/30 transition-all duration-300 hover:scale-110 active:scale-95"
-                    aria-label="Open navigation"
-                >
-                    <Hamburger
-                        size={24}
-                        strokeWidth={1.5}
-                        className="text-white"
-                    />
-                </button>
-            )}
+            <nav
+                className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl border-t border-stone-200 dark:border-stone-800 flex justify-around items-center pt-3 pb-safe shadow-[0_-1px_12px_0_rgba(0,0,0,0.06)] dark:shadow-[0_-1px_12px_0_rgba(0,0,0,0.3)]"
+                aria-label="Main navigation"
+            >
+                {navItems.map((item) => (
+                    <NavLink
+                        key={item.path}
+                        to={item.path}
+                        className="flex-1"
+                    >
+                        {({ isActive }) => (
+                            <div
+                                className={`flex flex-col items-center gap-1.5 min-h-11 justify-center transition-colors duration-200 ${
+                                    isActive
+                                        ? "text-stone-900 dark:text-stone-50"
+                                        : "text-stone-400 dark:text-stone-500"
+                                }`}
+                            >
+                                {/* Icon with glow when active */}
+                                <item.icon
+                                    size={20}
+                                    strokeWidth={isActive ? 2 : 1.5}
+                                    className={`transition-all duration-300 ${
+                                        isActive
+                                            ? "dark:filter-[drop-shadow(0_0_6px_currentColor)]"
+                                            : ""
+                                    }`}
+                                />
+                                {/* Always-visible label */}
+                                <span
+                                    className={`text-[11px] tracking-wide leading-none ${
+                                        isActive
+                                            ? "font-semibold"
+                                            : "font-medium"
+                                    }`}
+                                >
+                                    {item.name}
+                                </span>
+                            </div>
+                        )}
+                    </NavLink>
+                ))}
+            </nav>
         </div>
     );
 }

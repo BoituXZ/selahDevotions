@@ -1,7 +1,8 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
 /* Optional: Add a nice background color for the whole app */
 @theme {
-    --font-serif: "Playfair Display", serif;
+    --font-serif: "Cormorant Garamond", serif;
 }
 
 @layer base {
@@ -114,6 +115,18 @@ body {
     }
 }
 
+/* Count-up entrance for stat numbers */
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* ============================================
    Accessibility: Reduced Motion
    ============================================ */
@@ -126,4 +139,13 @@ body {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+/* ============================================
+   Mobile Safe Area Support
+   ============================================ */
+
+/* Clears the iOS home indicator / notch area for the fixed bottom nav */
+.pb-safe {
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
 }

@@ -31,6 +31,7 @@ try {
     const preferences = require("./routes/preferences").default;
     const share = require("./routes/share").default;
     const publicRoutes = require("./routes/public").default;
+    const plansRouter = require("./routes/plans").default;
 
     console.log("✅ Environment valid. Mounting full application...");
 
@@ -70,7 +71,7 @@ try {
                 return undefined;
             },
             allowHeaders: ["Content-Type", "Authorization"],
-            allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
             credentials: true,
         }),
     );
@@ -85,6 +86,7 @@ try {
     app.route("/api/streaks", streaks);
     app.route("/api/chat", chat);
     app.route("/api/preferences", preferences);
+    app.route("/api/plans", plansRouter);
 
     logger.info("Selah API fully initialized");
 } catch (error) {

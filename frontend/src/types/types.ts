@@ -36,3 +36,31 @@ export interface Profile {
     full_name: string | null;
     created_at?: string;
 }
+
+export interface PlanTimeline {
+    id: string;
+    plan_id: string;
+    day_number: number;
+    bible_verse: string | null;
+    verse_content: string | null;
+    encouragement_from_verse: string | null;
+    read: boolean;
+    devotion_id: string | null;
+    created_at: string;
+    modified_at: string;
+}
+
+export interface Plan {
+    id: string;
+    user_id: string;
+    title: string;
+    initial_sentiment: string | null;
+    intention: string | null;
+    closing_sentiment: string | null;
+    duration: number;
+    created_at: string;
+    is_complete: boolean;
+    current_day: number | null;
+    days_completed?: number;
+    timelines?: PlanTimeline[];
+}

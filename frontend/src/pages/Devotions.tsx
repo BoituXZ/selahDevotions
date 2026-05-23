@@ -1,9 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { api } from "../api";
 import { useNavigate } from "react-router-dom";
 import type { Devotion, UserPreferences } from "../types/types";
-import DevotionCard from "../components/DevotionCard";
+import DevotionListItem from "../components/DevotionCard";
 import CreateDevotionModal from "../components/CreateDevotionModal";
 import IndieTips from "../components/IndieTips";
 import EncryptionNotice from "../components/EncryptionNotice";
@@ -15,11 +14,25 @@ const Devotions = () => {
     const [showEncryptionNotice, setShowEncryptionNotice] = useState(false);
     const navigate = useNavigate();
 
+    const groupedByMonth = useMemo(() => {
+        const map = new Map<string, Devotion[]>();
+        for (const devotion of devotions) {
+            const key = new Date(devotion.created_at)
+                .toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                })
+                .toUpperCase();
+            if (!map.has(key)) map.set(key, []);
+            map.get(key)!.push(devotion);
+        }
+        return map;
+    }, [devotions]);
+
     const fetchDevotions = useCallback(async () => {
         try {
             const response = await api.get<Devotion[]>("/api/devotions");
             if (response) {
-                // Sort by date desc
                 const sorted = response.sort(
                     (a, b) =>
                         new Date(b.created_at).getTime() -
@@ -50,29 +63,27 @@ const Devotions = () => {
                 console.error("Failed to fetch preferences:", error);
             }
         };
-
         checkEncryptionNotice();
     }, []);
 
     return (
         <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-stone-950 pb-28 md:pb-12 p-6 md:p-12">
-            <div className="max-w-5xl mx-auto space-y-8">
+            <div className="max-w-2xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="flex justify-between items-end border-b border-stone-200 dark:border-stone-800 pb-6">
+                <div className="flex justify-between items-end border-b border-stone-200 dark:border-stone-800 pb-8">
                     <div>
                         <h1 className="text-4xl font-serif text-stone-800 dark:text-stone-100">
                             The Journal
                         </h1>
-                        <p className="text-stone-500 dark:text-stone-400 mt-2">
+                        <p className="text-stone-500 dark:text-stone-400 mt-2 font-sans text-sm">
                             Reflect on your walk with Him.
                         </p>
                     </div>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 px-4 py-2 text-sm md:px-5 md:py-3 md:text-base rounded-lg hover:bg-stone-700 dark:hover:bg-stone-200 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                        className="bg-[#3B4737] dark:bg-[#E6E0D4] text-white dark:text-[#3B4737] px-5 py-2.5 text-sm md:px-6 md:py-3 md:text-base rounded-lg hover:bg-[#2E3A2B] dark:hover:bg-[#D4CBBA] transition-colors font-sans font-medium whitespace-nowrap"
                     >
-                        <Plus size={16} strokeWidth={1.5} />
-                        <span className="font-medium">New Entry</span>
+                        New Entry
                     </button>
                 </div>
 
@@ -83,32 +94,50 @@ const Devotions = () => {
                     />
                 )}
 
-                {/* Grid List */}
+                {/* Card list */}
                 <div className="min-h-50">
                     {loading ? (
-                        <div className="text-stone-400 dark:text-stone-500 text-center py-12">
+                        <div className="text-stone-400 dark:text-stone-500 text-center py-12 font-sans text-sm">
                             Loading sanctuary...
                         </div>
                     ) : devotions.length === 0 ? (
-                        <div className="text-center py-20 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 border-dashed">
-                            <p className="text-stone-400 dark:text-stone-500 italic mb-4 font-serif text-xl">
+                        <div className="text-center py-20">
+                            <p className="text-stone-400 dark:text-stone-500 italic mb-3 font-serif text-xl">
                                 "Be still, and know that I am God."
                             </p>
-                            <p className="text-sm text-stone-500 dark:text-stone-400">
+                            <p className="text-sm text-stone-500 dark:text-stone-400 font-sans">
                                 No entries yet. Start your first devotion above.
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {devotions.map((devotion) => (
-                                <DevotionCard
-                                    key={devotion.id}
-                                    devotion={devotion}
-                                    onClick={() =>
-                                        navigate(`/devotions/${devotion.id}`)
-                                    }
-                                />
-                            ))}
+                        <div className="space-y-8">
+                            {Array.from(groupedByMonth.entries()).map(
+                                ([monthLabel, entries]) => (
+                                    <section key={monthLabel}>
+                                        {/* Month divider */}
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <span className="text-[11px] font-semibold tracking-[0.18em] text-stone-400 dark:text-stone-500 uppercase font-sans shrink-0">
+                                                {monthLabel}
+                                            </span>
+                                            <div className="flex-1 h-px bg-stone-200 dark:bg-stone-800 opacity-60" />
+                                        </div>
+                                        {/* Cards */}
+                                        <div className="space-y-3">
+                                            {entries.map((devotion) => (
+                                                <DevotionListItem
+                                                    key={devotion.id}
+                                                    devotion={devotion}
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/devotions/${devotion.id}`,
+                                                        )
+                                                    }
+                                                />
+                                            ))}
+                                        </div>
+                                    </section>
+                                ),
+                            )}
                         </div>
                     )}
                 </div>

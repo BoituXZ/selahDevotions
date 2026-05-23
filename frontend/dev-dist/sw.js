@@ -67,13 +67,13 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-a1974cce'], (function (workbox) { 'use strict';
+define(['./workbox-73882438'], (function (workbox) { 'use strict';
 
-  self.addEventListener('message', event => {
-    if (event.data && event.data.type === 'SKIP_WAITING') {
-      self.skipWaiting();
-    }
+  workbox.setCacheNameDetails({
+    prefix: "selah-v1.1.0"
   });
+  self.skipWaiting();
+  workbox.clientsClaim();
 
   /**
    * The precacheAndRoute() method efficiently caches and responds to
@@ -82,7 +82,7 @@ define(['./workbox-a1974cce'], (function (workbox) { 'use strict';
    */
   workbox.precacheAndRoute([{
     "url": "index.html",
-    "revision": "0.evkpdd30reg"
+    "revision": "0.mmvlf8kejfg"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
@@ -106,12 +106,12 @@ define(['./workbox-a1974cce'], (function (workbox) { 'use strict';
       statuses: [0, 200]
     })]
   }), 'GET');
-  workbox.registerRoute(/^https:\/\/.*\.supabase\.co\/.*$/i, new workbox.NetworkFirst({
+  workbox.registerRoute(/^https:\/\/.*\.supabase\.co\/(?!auth\/v1\/).*$/i, new workbox.NetworkFirst({
     "cacheName": "supabase-api-cache",
     "networkTimeoutSeconds": 10,
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 50,
-      maxAgeSeconds: 300
+      maxAgeSeconds: 60
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
     })]
@@ -125,7 +125,7 @@ define(['./workbox-a1974cce'], (function (workbox) { 'use strict';
     "networkTimeoutSeconds": 10,
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 50,
-      maxAgeSeconds: 300
+      maxAgeSeconds: 60
     })]
   }), 'GET');
 

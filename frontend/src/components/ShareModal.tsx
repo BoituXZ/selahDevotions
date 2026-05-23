@@ -48,7 +48,7 @@ export default function ShareModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 dark:bg-stone-950/70 backdrop-blur-sm p-4">
             <div className="bg-white dark:bg-stone-900 w-full max-w-lg rounded-2xl shadow-2xl flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-stone-100 dark:border-stone-800">
+                <div className="flex items-center justify-between px-6 py-5 border-b border-stone-100 dark:border-stone-800">
                     <div className="flex items-center gap-2">
                         <Globe className="w-5 h-5 text-stone-600 dark:text-stone-400" />
                         <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-50">
@@ -64,7 +64,7 @@ export default function ShareModal({
                 </div>
 
                 {/* Body */}
-                <div className="p-6 space-y-4">
+                <div className="px-6 py-5 space-y-4">
                     {isNewShare && (
                         <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
                             <div className="flex items-start gap-3">
@@ -99,7 +99,7 @@ export default function ShareModal({
                             />
                             <button
                                 onClick={handleCopy}
-                                className="px-4 py-2 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors flex items-center gap-2"
+                                className="px-4 py-2.5 bg-[#3B4737] dark:bg-[#E6E0D4] text-white dark:text-[#3B4737] rounded-lg hover:bg-[#2E3A2B] dark:hover:bg-[#D4CBBA] transition-colors flex items-center gap-2"
                             >
                                 {copied ? (
                                     <>
@@ -131,17 +131,17 @@ export default function ShareModal({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between gap-3 p-6 border-t border-stone-100 dark:border-stone-800">
+                <div className="flex items-center justify-between gap-3 px-6 py-5 border-t border-stone-100 dark:border-stone-800">
                     <button
                         onClick={handleRevoke}
                         disabled={isRevoking}
-                        className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50"
+                        className="px-4 py-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors disabled:opacity-50"
                     >
                         {isRevoking ? "Revoking..." : "Revoke Share Link"}
                     </button>
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors"
+                        className="px-7 py-2.5 bg-[#3B4737] dark:bg-[#E6E0D4] text-white dark:text-[#3B4737] rounded-lg hover:bg-[#2E3A2B] dark:hover:bg-[#D4CBBA] transition-colors"
                     >
                         Done
                     </button>

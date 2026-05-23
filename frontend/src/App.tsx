@@ -12,9 +12,12 @@ const Landing = lazy(() => import("./pages/Landing"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devotions = lazy(() => import("./pages/Devotions"));
+const DevotionDetail = lazy(() => import("./pages/DevotionDetail"));
+const Plans = lazy(() => import("./pages/Plans"));
+const PlanCreate = lazy(() => import("./pages/PlanCreate"));
+const PlanDetail = lazy(() => import("./pages/PlanDetail"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Profile = lazy(() => import("./pages/Profile"));
-const DevotionDetail = lazy(() => import("./pages/DevotionDetail"));
 const PublicDevotionPage = lazy(() => import("./pages/PublicDevotionPage"));
 
 function ProtectedLayout() {
@@ -74,6 +77,15 @@ export default function App() {
                             <Route
                                 path="/devotions/:id"
                                 element={<DevotionDetail />}
+                            />
+                            <Route path="/plans" element={<Plans />} />
+                            <Route
+                                path="/plans/new"
+                                element={<PlanCreate />}
+                            />
+                            <Route
+                                path="/plans/:id"
+                                element={<PlanDetail />}
                             />
                             <Route path="/chat" element={<Chat />} />
                             <Route path="/profile" element={<Profile />} />
