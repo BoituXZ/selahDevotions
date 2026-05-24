@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../auth/supabase";
+import { toast } from "sonner";
 
 export default function Register() {
     const [loading, setLoading] = useState(false);
@@ -24,11 +25,9 @@ export default function Register() {
         });
 
         if (error) {
-            alert(error.message);
+            toast.error("Oops, that didn't work.");
         } else {
-            alert(
-                "Account created! Please check your email to confirm, or login if auto-confirmed."
-            );
+            toast.success("Account created! Check your email to confirm.");
             navigate("/login");
         }
         setLoading(false);

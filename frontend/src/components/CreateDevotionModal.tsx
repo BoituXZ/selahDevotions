@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Save, BookOpen, Smile } from "lucide-react";
 import { api } from "../api";
+import { toast } from "sonner";
 import type { Devotion } from "../types/types";
 
 interface TimelineContext {
@@ -81,6 +82,7 @@ export default function CreateDevotionModal({
             onClose(); // Close modal
         } catch (err) {
             console.error(err);
+            toast.error("Oops, that didn't work.");
         } finally {
             setLoading(false);
         }

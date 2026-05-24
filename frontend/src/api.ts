@@ -75,7 +75,6 @@ async function request<T>(
         // Handle other errors
         const error = await response.json().catch(() => ({}));
         const message = error.error || "Something went wrong";
-        toast.error(message);
         throw new Error(message);
     }
 

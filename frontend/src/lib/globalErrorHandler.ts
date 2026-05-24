@@ -33,21 +33,8 @@ export const initGlobalErrorHandlers = (): void => {
             // Auth errors are handled by api.ts, so we can skip them here
             return;
         } else {
-            // Generic error - show toast and auto-reload
-            if (!reloadToastShown) {
-                toast.error(
-                    "An unexpected error occurred. The app will reload in 5 seconds.",
-                    {
-                        duration: 5000,
-                    }
-                );
-                reloadToastShown = true;
-
-                // Auto-reload after showing error
-                setTimeout(() => {
-                    window.location.reload();
-                }, 5000);
-            }
+            // Generic unhandled rejection — log silently, don't interrupt the user
+            return;
         }
 
         // Log to PostHog if available

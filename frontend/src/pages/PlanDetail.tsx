@@ -88,6 +88,7 @@ const PlanDetail = () => {
             }
         } catch (err) {
             console.error("Failed to save closing sentiment:", err);
+            toast.error("Oops, that didn't work.");
         } finally {
             setClosingLoading(false);
         }
@@ -102,6 +103,7 @@ const PlanDetail = () => {
             navigate("/plans");
         } catch (err) {
             console.error("Failed to delete plan:", err);
+            toast.error("Oops, that didn't work.");
             setDeleting(false);
             setShowDeleteModal(false);
         }

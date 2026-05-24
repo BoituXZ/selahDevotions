@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { api } from "../api";
 import type { Plan } from "../types/types";
 
@@ -41,6 +42,7 @@ const PlanCreate = () => {
             }
         } catch (err) {
             console.error("Failed to create plan:", err);
+            toast.error("Oops, that didn't work.");
         } finally {
             setLoading(false);
         }

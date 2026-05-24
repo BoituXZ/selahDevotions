@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../auth/supabase'
+import { toast } from 'sonner'
 
 export default function Login() {
   const [loading, setLoading] = useState(false)
@@ -15,7 +16,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     
     if (error) {
-        alert(error.message)
+        toast.error("Oops, that didn't work.")
     } else {
         navigate('/') 
     }
