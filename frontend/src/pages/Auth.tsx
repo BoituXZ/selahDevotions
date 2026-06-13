@@ -23,6 +23,8 @@ export default function Auth() {
     const [showVerificationPending, setShowVerificationPending] = useState(false);
     const [registeredEmail, setRegisteredEmail] = useState("");
     const [resendCooldown, setResendCooldown] = useState(0);
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
+    const [forgotEmailSent, setForgotEmailSent] = useState(false);
 
     // If user is already authenticated, redirect to dashboard
     if (authLoading) return null;
@@ -125,11 +127,102 @@ export default function Auth() {
         setLoading(false);
     };
 
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email) return;
+
+        setLoading(true);
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password`,
+        });
+
+        if (error) {
+            toast.error(error.message);
+        } else {
+            setForgotEmailSent(true);
+        }
+        setLoading(false);
+    };
+
     const handleSubmit = mode === "login" ? handleLogin : handleRegister;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950 flex items-center justify-center p-4">
-            {showVerificationPending ? (
+            {showForgotPassword ? (
+                <div className="bg-white dark:bg-stone-900 w-full max-w-md rounded-2xl shadow-2xl p-8 border border-stone-100 dark:border-stone-800">
+                    <div className="text-center mb-8">
+                        <h1 className="text-4xl font-serif text-stone-800 dark:text-stone-100 mb-2">
+                            Selah.
+                        </h1>
+                        <p className="text-stone-600 dark:text-stone-400">
+                            {forgotEmailSent
+                                ? "Check your inbox."
+                                : "Reset your password."}
+                        </p>
+                    </div>
+
+                    {forgotEmailSent ? (
+                        <div className="text-center space-y-4">
+                            <p className="text-stone-600 dark:text-stone-400">
+                                A reset link has been sent to{" "}
+                                <span className="font-medium text-stone-800 dark:text-stone-200">
+                                    {email}
+                                </span>
+                                . Follow the link to set a new password.
+                            </p>
+                            <button
+                                onClick={() => {
+                                    setShowForgotPassword(false);
+                                    setForgotEmailSent(false);
+                                }}
+                                className="text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline transition"
+                            >
+                                Back to login
+                            </button>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleForgotPassword} className="space-y-4">
+                            <div>
+                                <label
+                                    htmlFor="forgot-email"
+                                    className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2"
+                                >
+                                    Email
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 dark:text-stone-500">
+                                        <Mail size={18} />
+                                    </div>
+                                    <input
+                                        id="forgot-email"
+                                        type="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 transition placeholder:text-stone-400 dark:placeholder:text-stone-500"
+                                        placeholder="your@email.com"
+                                        disabled={loading}
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={loading || !email}
+                                className="w-full bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 py-3 rounded-lg font-medium hover:bg-stone-800 dark:hover:bg-stone-200 transition shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? "..." : "Send Reset Link"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowForgotPassword(false)}
+                                className="w-full text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline transition"
+                            >
+                                Back to login
+                            </button>
+                        </form>
+                    )}
+                </div>
+            ) : showVerificationPending ? (
                 <VerificationPending
                     email={registeredEmail}
                     onBackToLogin={() => {
@@ -265,6 +358,17 @@ export default function Auth() {
                             <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
                                 Minimum 8 characters, 1 uppercase letter, 1 special character
                             </p>
+                        )}
+                        {mode === "login" && (
+                            <div className="flex justify-end mt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowForgotPassword(true)}
+                                    className="text-xs text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline transition"
+                                >
+                                    Forgot your password?
+                                </button>
+                            </div>
                         )}
                     </div>
 

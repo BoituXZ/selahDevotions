@@ -19,6 +19,7 @@ const PlanDetail = lazy(() => import("./pages/PlanDetail"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Profile = lazy(() => import("./pages/Profile"));
 const PublicDevotionPage = lazy(() => import("./pages/PublicDevotionPage"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 function ProtectedLayout() {
     const { user } = useAuth();
@@ -53,6 +54,7 @@ export default function App() {
                         {/* Public Routes */}
                         <Route path="/" element={<Landing />} />
                         <Route path="/auth" element={<Auth />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
                         <Route
                             path="/share/:token"
                             element={<PublicDevotionPage />}
