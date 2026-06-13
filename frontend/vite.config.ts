@@ -13,6 +13,17 @@ export default defineConfig({
         // Inject build version for cache versioning (uses package.json version)
         "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    "vendor-react": ["react", "react-dom", "react-router-dom"],
+                    "vendor-supabase": ["@supabase/supabase-js"],
+                    "vendor-ui": ["lucide-react", "sonner"],
+                },
+            },
+        },
+    },
     plugins: [
         react(),
         tailwindcss(),
