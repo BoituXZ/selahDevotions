@@ -15,16 +15,16 @@ export default function ResetPassword() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const passwordUpdated = useRef(false);
+    // Shared ref so the fallback effect can cancel the invalid timer
+    const invalidTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         let resolved = false;
-        let invalidTimer: ReturnType<typeof setTimeout> | null = null;
 
         const resolve = () => {
             if (resolved) return;
             resolved = true;
-            if (invalidTimer) clearTimeout(invalidTimer);
+            if (invalidTimerRef.current) clearTimeout(invalidTimerRef.current);
             setStatus("ready");
         };
 
@@ -32,24 +32,24 @@ export default function ResetPassword() {
             if (event === "PASSWORD_RECOVERY") resolve();
         });
 
-        invalidTimer = setTimeout(() => {
+        invalidTimerRef.current = setTimeout(() => {
             if (!resolved) setStatus("invalid");
         }, 6000);
 
         return () => {
-            if (invalidTimer) clearTimeout(invalidTimer);
+            if (invalidTimerRef.current) clearTimeout(invalidTimerRef.current);
             subscription.unsubscribe();
-            // Sign out the temporary recovery session if password was never updated
-            if (!passwordUpdated.current) {
-                supabase.auth.signOut();
-            }
         };
     }, []);
 
-    // Fallback: AuthProvider captures PASSWORD_RECOVERY and updates its session —
-    // watch it in case our own subscription missed the event
+    // Fallback: AuthProvider captures PASSWORD_RECOVERY and updates its session.
+    // If our own subscription missed the event, cancel the invalid timer and show the form.
     useEffect(() => {
         if (authSession && status === "loading") {
+            if (invalidTimerRef.current) {
+                clearTimeout(invalidTimerRef.current);
+                invalidTimerRef.current = null;
+            }
             setStatus("ready");
         }
     }, [authSession, status]);
@@ -75,7 +75,6 @@ export default function ResetPassword() {
             toast.error(error.message);
             setLoading(false);
         } else {
-            passwordUpdated.current = true;
             toast.success("Password updated!");
             navigate("/dashboard", { replace: true });
         }
