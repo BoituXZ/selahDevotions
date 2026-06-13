@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { supabase } from "../auth/supabase";
+import { useAuth } from "../AuthProvider";
 import { toast } from "sonner";
 import { validatePassword } from "../lib/validation";
 
 export default function ResetPassword() {
     const navigate = useNavigate();
+    const { session: authSession } = useAuth();
     const [isReady, setIsReady] = useState(false);
     const [isInvalid, setIsInvalid] = useState(false);
     const [password, setPassword] = useState("");
@@ -14,22 +16,38 @@ export default function ResetPassword() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const timeout = setTimeout(() => {
-            setIsInvalid(true);
-        }, 4000);
+        let resolved = false;
+        let invalidTimer: ReturnType<typeof setTimeout> | null = null;
 
+        const resolve = () => {
+            if (resolved) return;
+            resolved = true;
+            if (invalidTimer) clearTimeout(invalidTimer);
+            setIsReady(true);
+        };
+
+        // Primary: catch the PASSWORD_RECOVERY event directly
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-            if (event === "PASSWORD_RECOVERY") {
-                clearTimeout(timeout);
-                setIsReady(true);
-            }
+            if (event === "PASSWORD_RECOVERY") resolve();
         });
 
+        invalidTimer = setTimeout(() => {
+            if (!resolved) setIsInvalid(true);
+        }, 6000);
+
         return () => {
-            clearTimeout(timeout);
+            if (invalidTimer) clearTimeout(invalidTimer);
             subscription.unsubscribe();
         };
     }, []);
+
+    // Fallback: AuthProvider reliably captures PASSWORD_RECOVERY and updates its
+    // session — watch it in case our own subscription missed the event
+    useEffect(() => {
+        if (authSession && !isReady && !isInvalid) {
+            setIsReady(true);
+        }
+    }, [authSession, isReady, isInvalid]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
