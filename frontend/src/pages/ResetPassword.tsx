@@ -33,8 +33,11 @@ export default function ResetPassword() {
         });
 
         invalidTimerRef.current = setTimeout(() => {
-            if (!resolved) setStatus("invalid");
-        }, 6000);
+            if (!resolved) {
+                resolved = true;
+                setStatus("invalid");
+            }
+        }, 10000);
 
         return () => {
             if (invalidTimerRef.current) clearTimeout(invalidTimerRef.current);
