@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { supabase } from "../auth/supabase";
@@ -6,14 +6,16 @@ import { useAuth } from "../AuthProvider";
 import { toast } from "sonner";
 import { validatePassword } from "../lib/validation";
 
+type Status = "loading" | "ready" | "invalid";
+
 export default function ResetPassword() {
     const navigate = useNavigate();
     const { session: authSession } = useAuth();
-    const [isReady, setIsReady] = useState(false);
-    const [isInvalid, setIsInvalid] = useState(false);
+    const [status, setStatus] = useState<Status>("loading");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const passwordUpdated = useRef(false);
 
     useEffect(() => {
         let resolved = false;
@@ -23,31 +25,34 @@ export default function ResetPassword() {
             if (resolved) return;
             resolved = true;
             if (invalidTimer) clearTimeout(invalidTimer);
-            setIsReady(true);
+            setStatus("ready");
         };
 
-        // Primary: catch the PASSWORD_RECOVERY event directly
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
             if (event === "PASSWORD_RECOVERY") resolve();
         });
 
         invalidTimer = setTimeout(() => {
-            if (!resolved) setIsInvalid(true);
+            if (!resolved) setStatus("invalid");
         }, 6000);
 
         return () => {
             if (invalidTimer) clearTimeout(invalidTimer);
             subscription.unsubscribe();
+            // Sign out the temporary recovery session if password was never updated
+            if (!passwordUpdated.current) {
+                supabase.auth.signOut();
+            }
         };
     }, []);
 
-    // Fallback: AuthProvider reliably captures PASSWORD_RECOVERY and updates its
-    // session — watch it in case our own subscription missed the event
+    // Fallback: AuthProvider captures PASSWORD_RECOVERY and updates its session —
+    // watch it in case our own subscription missed the event
     useEffect(() => {
-        if (authSession && !isReady && !isInvalid) {
-            setIsReady(true);
+        if (authSession && status === "loading") {
+            setStatus("ready");
         }
-    }, [authSession, isReady, isInvalid]);
+    }, [authSession, status]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -70,6 +75,7 @@ export default function ResetPassword() {
             toast.error(error.message);
             setLoading(false);
         } else {
+            passwordUpdated.current = true;
             toast.success("Password updated!");
             navigate("/dashboard", { replace: true });
         }
@@ -83,21 +89,21 @@ export default function ResetPassword() {
                         Selah.
                     </h1>
                     <p className="text-stone-600 dark:text-stone-400">
-                        {isInvalid
+                        {status === "invalid"
                             ? "This link is no longer valid."
-                            : isReady
+                            : status === "ready"
                             ? "Choose a new password."
                             : "Verifying your reset link…"}
                     </p>
                 </div>
 
-                {!isReady && !isInvalid && (
+                {status === "loading" && (
                     <div className="flex justify-center">
                         <div className="w-6 h-6 border-2 border-stone-300 dark:border-stone-600 border-t-stone-700 dark:border-t-stone-300 rounded-full animate-spin" />
                     </div>
                 )}
 
-                {isInvalid && (
+                {status === "invalid" && (
                     <div className="text-center space-y-4">
                         <p className="text-stone-500 dark:text-stone-400 text-sm">
                             This reset link has expired or is invalid. Request a new one from the login page.
@@ -111,7 +117,7 @@ export default function ResetPassword() {
                     </div>
                 )}
 
-                {isReady && (
+                {status === "ready" && (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label
