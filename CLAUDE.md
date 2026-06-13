@@ -116,7 +116,7 @@ For more information, read the Bun API docs in `node_modules/bun-types/docs/**.m
 -   **Backend Framework:** Hono (v4.x)
 -   **Language:** TypeScript
 -   **AI Infrastructure:** Google AI Studio
-    -   **Model:** `gemini-2.0-flash-lite-001`
+    -   **Model:** `gemini-2.5-flash-lite`
     -   **Auth:** API Key (Get from https://aistudio.google.com/app/apikey)
 -   **Database/Auth:** Supabase (PostgreSQL + Auth)
 -   **Validation:** Zod + @hono/zod-validator
